@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Oswald:wght@500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #0a0a0f;
+  color: #E5E7EB;
+  min-height: 100vh;
+}
+
+/* Custom scrollbar - FM style */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.02);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* FM-style panel */
+.fm-panel {
+  background: linear-gradient(180deg, rgba(20, 20, 30, 0.95) 0%, rgba(15, 15, 22, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* FM-style header */
+.fm-header {
+  background: linear-gradient(180deg, rgba(30, 30, 45, 0.9) 0%, rgba(20, 20, 30, 0.95) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Active tab indicator */
+.tab-active {
+  color: #22c55e;
+  position: relative;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: #22c55e;
+  border-radius: 1px;
+}
+
+/* FM Green accent */
+.fm-green {
+  color: #22c55e;
+}
+
+.fm-green-bg {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+}
+
+/* FM stat colors */
+.stat-excellent { color: #22c55e; }
+.stat-good { color: #84cc16; }
+.stat-average { color: #eab308; }
+.stat-poor { color: #f97316; }
+.stat-bad { color: #ef4444; }
+
+/* Rating badge styles */
+.rating-badge {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+}
+
+/* Match score display */
+.score-display {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Live pulse animation */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.animate-pulse-live {
+  animation: pulse-live 1.5s ease-in-out infinite;
+}
+
+/* FM-style button */
+.fm-button {
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.15s ease;
+}
+
+.fm-button:hover {
+  background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.fm-button-primary {
+  background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  font-weight: 600;
+}
+
+.fm-button-primary:hover {
+  background: linear-gradient(180deg, #2dd468 0%, #1cb854 100%);
+}
+
+/* Position colors */
+.pos-gk { color: #f59e0b; background: rgba(245, 158, 11, 0.15); }
+.pos-def { color: #3b82f6; background: rgba(59, 130, 246, 0.15); }
+.pos-mid { color: #22c55e; background: rgba(34, 197, 94, 0.15); }
+.pos-att { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+
+/* Table row hover */
+.table-row {
+  transition: background 0.1s ease;
+}
+
+.table-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Card highlight on hover */
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Gradient overlays */
+.gradient-fade-b {
+  background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 15, 0.95) 100%);
+}
+
+.gradient-fade-t {
+  background: linear-gradient(0deg, transparent 0%, rgba(10, 10, 15, 0.95) 100%);
+}
+
+/* Section divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+}
+
+/* Pitch grass pattern */
+.pitch-grass {
+  background: repeating-linear-gradient(
+    0deg,
+    #2d8a4e 0px,
+    #2d8a4e 20px,
+    #34a058 20px,
+    #34a058 40px
+  );
+}
+
+/* Number input hide arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(34, 197, 94, 0.3);
+}

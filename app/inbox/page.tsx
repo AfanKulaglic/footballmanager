@@ -1,0 +1,205 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Mail, Briefcase, Newspaper, Users, Check, DollarSign, Eye } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import ClubLogo from "@/components/ClubLogo";
+import { useGameStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { useClubNames } from "@/lib/useClubName";
+
+const typeIcons = {
+  board: Users,
+  transfer: Briefcase,
+  news: Newspaper,
+  staff: Mail,
+  offer: DollarSign,
+  scout: Eye,
+};
+
+const typeColors = {
+  board: "from-purple-500 to-purple-700",
+  transfer: "from-green-500 to-emerald-700",
+  news: "from-yellow-500 to-amber-600",
+  staff: "from-blue-500 to-blue-700",
+  offer: "from-amber-500 to-orange-600",
+  scout: "from-cyan-500 to-blue-600",
+};
+
+function formatMoney(amount: number): string {
+  if (amount >= 1000000) return `€${(amount / 1000000).toFixed(1)}M`;
+  if (amount >= 1000) return `€${(amount / 1000).toFixed(0)}K`;
+  return `€${amount}`;
+}
+
+export default function InboxPage() {
+  const { club, transferOffers, scoutReports, respondToOffer } = useGameStore();
+  const { getDisplayName } = useClubNames();
+  const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
+  const [filter, setFilter] = useState("All");
+
+  // Create messages from transfer offers and scout reports
+  const messages = [
+    ...transferOffers.filter(o => o.type === "incoming").map(offer => ({
+      id: offer.id,
+      from: getDisplayName(offer.fromClub.id, offer.fromClub.name),
+      subject: `Transfer Offer: ${offer.player.name}`,
+      preview: `${formatMoney(offer.fee)} bid for your player`,
+      date: offer.status === "pending" ? "Pending" : offer.status === "accepted" ? "Accepted" : "Rejected",
+      read: offer.status !== "pending",
+      type: "offer" as const,
+      data: offer,
+    })),
+    ...transferOffers.filter(o => o.type === "outgoing").map(offer => ({
+      id: offer.id,
+      from: getDisplayName(offer.fromClub.id, offer.fromClub.name),
+      subject: `Your Bid: ${offer.player.name}`,
+      preview: `${formatMoney(offer.fee)} offer ${offer.status}`,
+      date: offer.status === "pending" ? "Pending" : offer.status === "accepted" ? "Accepted" : "Rejected",
+      read: offer.status !== "pending",
+      type: "transfer" as const,
+      data: offer,
+    })),
+    ...scoutReports.map(report => ({
+      id: String(report.id),
+      from: "Scout Team",
+      subject: `Scout Report: ${report.player.name}`,
+      preview: report.status === "completed" 
+        ? `${report.recommendation.replace("_", " ")} - ${formatMoney(report.estimatedValue)}`
+        : `Scouting in progress...`,
+      date: report.status === "completed" ? "Complete" : `MD ${report.completesAt}`,
+      read: report.status === "completed",
+      type: "scout" as const,
+      data: report,
+    })),
+  ];
+
+  const filteredMessages = filter === "All" 
+    ? messages 
+    : messages.filter(m => m.type === filter.toLowerCase());
+
+  const unreadCount = messages.filter(m => !m.read).length;
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1a2e] to-transparent backdrop-blur-md">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <Link href="/">
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+                <ArrowLeft size={18} />
+              </motion.button>
+            </Link>
+            <ClubLogo clubId={club.id} size={36} />
+            <div>
+              <h1 className="text-lg font-bold text-white">Inbox</h1>
+              <p className="text-[10px] text-gray-400">{unreadCount} pending • {messages.length} total</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 px-4 pb-24 pt-4">
+        {/* Filter tabs */}
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
+          {["All", "Offer", "Transfer", "Scout"].map((f) => (
+            <button key={f} onClick={() => setFilter(f)}
+              className={cn(
+                "px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all",
+                filter === f
+                  ? "bg-purple-500 text-white"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/10"
+              )}>
+              {f}
+            </button>
+          ))}
+        </div>
+
+        {/* Messages */}
+        <div className="space-y-2">
+          {filteredMessages.length === 0 ? (
+            <div className="p-8 rounded-xl bg-white/5 border border-white/10 text-center">
+              <Mail size={40} className="mx-auto text-gray-600 mb-3" />
+              <p className="text-sm text-gray-400">No messages</p>
+              <p className="text-xs text-gray-500 mt-1">Play matches to receive transfer offers</p>
+            </div>
+          ) : (
+            <AnimatePresence>
+              {filteredMessages.map((message, index) => {
+                const Icon = typeIcons[message.type];
+                const colorClass = typeColors[message.type];
+                const isSelected = selectedMessage === message.id;
+                const isOffer = message.type === "offer" && message.data && "status" in message.data && message.data.status === "pending";
+                
+                return (
+                  <motion.div key={message.id}
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -100 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => setSelectedMessage(isSelected ? null : message.id)}
+                    className={cn(
+                      "relative p-4 rounded-xl border cursor-pointer transition-all",
+                      isSelected ? "bg-purple-500/10 border-purple-500/30"
+                        : !message.read ? "bg-white/5 border-purple-500/30 border-l-2"
+                        : "bg-white/5 border-white/10 hover:bg-white/10"
+                    )}>
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-11 h-11 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-lg",
+                        colorClass
+                      )}>
+                        <Icon size={18} />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-sm font-bold text-white">{message.from}</span>
+                          <span className={cn("text-[10px] px-2 py-0.5 rounded-full", 
+                            message.date === "Pending" ? "bg-yellow-500/20 text-yellow-400" :
+                            message.date === "Accepted" ? "bg-green-500/20 text-green-400" :
+                            message.date === "Rejected" ? "bg-red-500/20 text-red-400" :
+                            "text-gray-500"
+                          )}>{message.date}</span>
+                        </div>
+                        <p className="text-sm font-medium text-gray-200">{message.subject}</p>
+                        <p className="text-xs text-gray-500 truncate mt-1">{message.preview}</p>
+                        
+                        {/* Expanded content for offers */}
+                        <AnimatePresence>
+                          {isSelected && isOffer && (
+                            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }} className="mt-3 pt-3 border-t border-white/10">
+                              <p className="text-sm text-gray-300 mb-3">
+                                {message.from} wants to sign {(message.data as any).player.name} for {formatMoney((message.data as any).fee)}.
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <button onClick={(e) => { e.stopPropagation(); respondToOffer(message.id, true); }}
+                                  className="px-4 py-2 rounded-lg bg-green-500 text-white text-xs font-semibold hover:bg-green-600 transition-colors">
+                                  Accept
+                                </button>
+                                <button onClick={(e) => { e.stopPropagation(); respondToOffer(message.id, false); }}
+                                  className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/30 transition-colors border border-red-500/30">
+                                  Reject
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      
+                      {!message.read && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-500 flex-shrink-0 mt-1.5 animate-pulse" />
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
