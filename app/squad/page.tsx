@@ -236,7 +236,7 @@ function SubstituteCard({
         {/* Player info */}
         <div className="flex-1 min-w-0" onClick={(e: React.MouseEvent) => { e.stopPropagation(); onShowInfo(); }}>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs">{getFlag(player.nationality, player.name)}</span>
+            <span className="text-xs">{getFlag(player.nationality)}</span>
             <p className="text-sm font-semibold truncate">{player.name}</p>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
@@ -309,7 +309,7 @@ function PlayerListView({
               </div>
               <div className="flex-1" onClick={(e) => { e.stopPropagation(); onShowPlayerInfo(player); }}>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm">{getFlag(player.nationality, player.name)}</span>
+                  <span className="text-sm">{getFlag(player.nationality)}</span>
                   <p className="text-sm font-bold">{player.name}</p>
                 </div>
                 <span 
@@ -355,7 +355,7 @@ function PlayerListView({
               </div>
               <div className="flex-1" onClick={(e) => { e.stopPropagation(); onShowPlayerInfo(player); }}>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs">{getFlag(player.nationality, player.name)}</span>
+                  <span className="text-xs">{getFlag(player.nationality)}</span>
                   <p className="text-sm font-semibold">{player.name}</p>
                 </div>
                 <span 

@@ -1295,7 +1295,7 @@ function StatsPlayerRow({ player, rank, highlight }: StatsPlayerRowProps) {
         }`}>
           {rank}
         </span>
-        <span className="text-base">{getFlag(player.nationality, player.name)}</span>
+        <span className="text-base">{getFlag(player.nationality)}</span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white truncate">{player.name}</p>
           <p className="text-[10px] text-gray-500">{player.position}</p>

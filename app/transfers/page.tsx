@@ -149,7 +149,7 @@ export default function TransfersPage() {
                         onClick={() => setPlayerInfoModal({ player: item.player, clubName: getDisplayName(item.club.id, item.club.name) })}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-sm">{getFlag(item.player.nationality, item.player.name)}</span>
+                          <span className="text-sm">{getFlag(item.player.nationality)}</span>
                           <p className="text-sm font-bold text-white truncate">{item.player.name}</p>
                           {isScouted && <Star size={12} className="text-amber-400 fill-amber-400" />}
                         </div>
@@ -204,7 +204,7 @@ export default function TransfersPage() {
                         <div>
                           <p className="text-sm font-bold text-white">{scout.name}</p>
                           <p className="text-xs text-gray-400">
-                            {getFlag(scout.nationality, scout.name)} • Rating: {scout.rating}/20 • {scout.specialization}
+                            {getFlag(scout.nationality)} • Rating: {scout.rating}/20 • {scout.specialization}
                           </p>
                         </div>
                         <button onClick={() => fireScout(scout.id)}
@@ -260,7 +260,7 @@ export default function TransfersPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm">{getFlag(report.player.nationality, report.player.name)}</span>
+                            <span className="text-sm">{getFlag(report.player.nationality)}</span>
                             <p className="text-sm font-bold text-white">{report.player.name}</p>
                           </div>
                           <p className="text-xs text-gray-400">{report.club.name} • {report.player.position}</p>
@@ -291,7 +291,7 @@ export default function TransfersPage() {
                       <div>
                         <p className="text-sm font-bold text-white">{scout.name}</p>
                         <p className="text-xs text-gray-400">
-                          {getFlag(scout.nationality, scout.name)} • Rating: {scout.rating}/20 • {scout.specialization}
+                          {getFlag(scout.nationality)} • Rating: {scout.rating}/20 • {scout.specialization}
                         </p>
                         <p className="text-xs text-amber-400 mt-1">Salary: {formatMoney(scout.salary)}/year</p>
                       </div>
@@ -473,7 +473,7 @@ export default function TransfersPage() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">{getFlag(selectedPlayer.player.nationality, selectedPlayer.player.name)}</span>
+                      <span className="text-sm">{getFlag(selectedPlayer.player.nationality)}</span>
                       <p className="text-sm font-bold text-white">{selectedPlayer.player.name}</p>
                     </div>
                     <p className="text-xs text-gray-400">{selectedPlayer.club.name}</p>

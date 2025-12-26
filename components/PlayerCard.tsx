@@ -86,60 +86,14 @@ export const nationalityFlags: Record<string, string> = {
   saudi: "🇸🇦",
   
   // Default
-  unknown: "🌍",
+  unknown: "🏳️",
 };
 
-// Name patterns to guess nationality from player name
-const namePatterns: { pattern: RegExp; nationality: string }[] = [
-  // Spanish names
-  { pattern: /García|Rodríguez|Martínez|López|González|Hernández|Pérez|Sánchez|Ramírez|Torres|Flores|Rivera|Gómez|Díaz|Moreno|Muñoz|Álvarez|Romero|Ruiz|Jiménez/i, nationality: "spanish" },
-  // Portuguese names
-  { pattern: /Silva|Santos|Ferreira|Pereira|Oliveira|Costa|Rodrigues|Martins|Fernandes|Gonçalves|Gomes|Lopes|Marques|Alves|Almeida|Ribeiro|Pinto|Carvalho|Teixeira|Sousa/i, nationality: "portuguese" },
-  // Brazilian names (similar to Portuguese but with some unique ones)
-  { pattern: /Neymar|Vinicius|Casemiro|Richarlison|Raphinha|Rodrygo|Antony|Marquinhos|Fabinho|Alisson|Ederson|Danilo|Nascimento|Araújo|Barbosa|Moreira/i, nationality: "brazilian" },
-  // German names
-  { pattern: /Müller|Schmidt|Schneider|Fischer|Weber|Meyer|Wagner|Becker|Schulz|Hoffmann|Schäfer|Koch|Bauer|Richter|Klein|Wolf|Schröder|Neumann|Schwarz|Zimmermann/i, nationality: "german" },
-  // French names
-  { pattern: /Dupont|Martin|Bernard|Dubois|Thomas|Robert|Richard|Petit|Durand|Leroy|Moreau|Simon|Laurent|Lefebvre|Michel|David|Bertrand|Roux|Vincent/i, nationality: "french" },
-  // Italian names
-  { pattern: /Rossi|Russo|Ferrari|Esposito|Bianchi|Romano|Colombo|Ricci|Marino|Greco|Bruno|Gallo|Conti|De Luca|Giordano|Mancini|Rizzo|Lombardi|Moretti/i, nationality: "italian" },
-  // Dutch names
-  { pattern: /de Jong|van Dijk|de Ligt|Depay|Dumfries|Bergwijn|Blind|Gakpo|Weghorst|Simons|Timber|van de Ven|Koopmeiners|Frimpong|Aké|Malen|Reijnders|de Vrij|Gravenberch/i, nationality: "dutch" },
-  // Argentine names
-  { pattern: /Messi|Di María|Dybala|Lautaro|Julián|Emiliano|Lisandro|Enzo|Alexis|Giovani|Nahuel|Germán|Exequiel|Acuña|Medina|Herrera/i, nationality: "argentine" },
-  // Bosnian names
-  { pattern: /Džeko|Pjanić|Kolašinac|Bešić|Begović|Lulić|Hadžić|Ibišević|Višća|Ahmedhodžić|Demirović|Kovačević|Mehmedović|Salihović|Mujdža|Spahić|Sušić|Muslimović|Rahimić|Bajramović/i, nationality: "bosnian" },
-  // English names
-  { pattern: /Smith|Johnson|Williams|Brown|Jones|Wilson|Taylor|Davies|Evans|Walker|Wright|Robinson|Thompson|White|Hall|Clarke|King|Green|Hill|Scott/i, nationality: "english" },
-];
-
-// Guess nationality from player name
-function guessNationalityFromName(name: string): string {
-  for (const { pattern, nationality } of namePatterns) {
-    if (pattern.test(name)) {
-      return nationality;
-    }
-  }
-  return "english"; // Default fallback
-}
-
 // Get flag for nationality
-export function getFlag(nationality?: string, playerName?: string): string {
-  // If nationality is provided and valid, use it
-  if (nationality) {
-    const key = nationality.toLowerCase().replace(/\s+/g, "");
-    if (nationalityFlags[key]) {
-      return nationalityFlags[key];
-    }
-  }
-  
-  // Try to guess from player name
-  if (playerName) {
-    const guessedNationality = guessNationalityFromName(playerName);
-    return nationalityFlags[guessedNationality] || nationalityFlags.unknown;
-  }
-  
-  return nationalityFlags.unknown;
+export function getFlag(nationality?: string): string {
+  if (!nationality) return nationalityFlags.unknown;
+  const key = nationality.toLowerCase().replace(/\s+/g, "");
+  return nationalityFlags[key] || nationalityFlags.unknown;
 }
 
 // Get full nationality name
@@ -246,7 +200,7 @@ export function PlayerInfoModal({ player, isOpen, onClose, clubName }: PlayerInf
                 {/* Player info */}
                 <div className="flex-1 pt-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-2xl">{getFlag(player.nationality, player.name)}</span>
+                    <span className="text-2xl">{getFlag(player.nationality)}</span>
                     <span className="text-xs text-gray-400">{getNationalityName(player.nationality)}</span>
                   </div>
                   <h2 className="text-xl font-bold text-white">{player.name}</h2>
@@ -450,7 +404,7 @@ export function PlayerRow({
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className={compact ? "text-sm" : "text-base"}>{getFlag(player.nationality, player.name)}</span>
+            <span className={compact ? "text-sm" : "text-base"}>{getFlag(player.nationality)}</span>
             <p className={`${compact ? "text-xs" : "text-sm"} font-semibold text-white truncate`}>{player.name}</p>
           </div>
           {showPosition && (
