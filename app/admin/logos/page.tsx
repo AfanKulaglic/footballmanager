@@ -416,8 +416,8 @@ export default function LogoCMSPage() {
           <div className="text-sm text-gray-500">
             <p className="font-medium text-white mb-2">Instructions:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Click &quot;Logo&quot; to upload a custom PNG image for a club</li>
-              <li>Click &quot;Name&quot; to change the club&apos;s display name</li>
+              <li>Click "Logo" to upload a custom PNG image for a club</li>
+              <li>Click "Name" to change the club's display name</li>
               <li>Recommended logo size: 200x200 pixels (square)</li>
               <li>Maximum file size: 500KB</li>
               <li>Customizations are stored in your browser</li>
