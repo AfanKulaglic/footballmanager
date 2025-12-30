@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, Users, List, ChevronDown, RefreshCw } from "lucide-react";
+import { ArrowLeft, Users, List, ChevronDown, RefreshCw, Shield, Star, TrendingUp, Filter } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ClubLogo from "@/components/ClubLogo";
 import { PlayerInfoModal, getFlag, positionColors } from "@/components/PlayerCard";
@@ -70,12 +70,14 @@ function FootballPitch({
   selectedPlayer, 
   onSelectPlayer,
   swapMode,
+  onShowInfo,
 }: {
   players: Player[];
   formation: string;
   selectedPlayer: Player | null;
   onSelectPlayer: (player: Player | null) => void;
   swapMode: boolean;
+  onShowInfo: (player: Player) => void;
 }) {
   const formationData = formations[formation];
   const startingXI = players.slice(0, 11);
@@ -86,50 +88,38 @@ function FootballPitch({
       <svg viewBox="0 0 300 400" className="w-full h-full">
         <defs>
           <pattern id="grass" patternUnits="userSpaceOnUse" width="300" height="33.33">
-            <rect width="300" height="16.67" fill="#3a9d5c" />
-            <rect y="16.67" width="300" height="16.67" fill="#45b068" />
+            <rect width="300" height="16.67" fill="#2d7a47" />
+            <rect y="16.67" width="300" height="16.67" fill="#348a52" />
           </pattern>
-          <linearGradient id="pitchGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#2d8a4a" />
-            <stop offset="50%" stopColor="#3a9d5c" />
-            <stop offset="100%" stopColor="#2d8a4a" />
-          </linearGradient>
         </defs>
         
-        {/* Pitch background */}
         <rect width="300" height="400" fill="url(#grass)" />
-        
-        {/* Pitch border */}
-        <rect x="10" y="10" width="280" height="380" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        
-        {/* Center line */}
-        <line x1="10" y1="200" x2="290" y2="200" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        
-        {/* Center circle */}
-        <circle cx="150" cy="200" r="40" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <circle cx="150" cy="200" r="3" fill="rgba(255,255,255,0.7)" />
+        <rect x="10" y="10" width="280" height="380" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <line x1="10" y1="200" x2="290" y2="200" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <circle cx="150" cy="200" r="40" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <circle cx="150" cy="200" r="3" fill="rgba(255,255,255,0.5)" />
         
         {/* Top penalty area */}
-        <rect x="60" y="10" width="180" height="65" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <rect x="100" y="10" width="100" height="25" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <circle cx="150" cy="50" r="3" fill="rgba(255,255,255,0.7)" />
-        <path d="M 110 75 A 40 40 0 0 0 190 75" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
+        <rect x="60" y="10" width="180" height="65" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <rect x="100" y="10" width="100" height="25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <circle cx="150" cy="50" r="3" fill="rgba(255,255,255,0.5)" />
+        <path d="M 110 75 A 40 40 0 0 0 190 75" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         
         {/* Bottom penalty area */}
-        <rect x="60" y="325" width="180" height="65" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <rect x="100" y="365" width="100" height="25" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <circle cx="150" cy="350" r="3" fill="rgba(255,255,255,0.7)" />
-        <path d="M 110 325 A 40 40 0 0 1 190 325" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
+        <rect x="60" y="325" width="180" height="65" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <rect x="100" y="365" width="100" height="25" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <circle cx="150" cy="350" r="3" fill="rgba(255,255,255,0.5)" />
+        <path d="M 110 325 A 40 40 0 0 1 190 325" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         
         {/* Corner arcs */}
-        <path d="M 10 18 A 8 8 0 0 0 18 10" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <path d="M 282 10 A 8 8 0 0 0 290 18" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <path d="M 10 382 A 8 8 0 0 1 18 390" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
-        <path d="M 290 382 A 8 8 0 0 0 282 390" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
+        <path d="M 10 18 A 8 8 0 0 0 18 10" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <path d="M 282 10 A 8 8 0 0 0 290 18" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <path d="M 10 382 A 8 8 0 0 1 18 390" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <path d="M 290 382 A 8 8 0 0 0 282 390" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         
         {/* Goals */}
-        <rect x="120" y="2" width="60" height="8" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
-        <rect x="120" y="390" width="60" height="8" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="1" />
+        <rect x="120" y="2" width="60" height="8" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
+        <rect x="120" y="390" width="60" height="8" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1" />
       </svg>
       
       {/* Players overlay */}
@@ -144,7 +134,6 @@ function FootballPitch({
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 25, delay: index * 0.03 }}
-              onClick={() => onSelectPlayer(isSelected ? null : player)}
               className="absolute flex flex-col items-center cursor-pointer"
               style={{
                 left: `${pos.x}%`,
@@ -152,20 +141,24 @@ function FootballPitch({
                 transform: "translate(-50%, -50%)",
               }}
             >
-              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="relative">
-                {/* Selection indicator */}
+              <motion.div 
+                whileHover={{ scale: 1.1 }} 
+                whileTap={{ scale: 0.95 }} 
+                className="relative"
+                onClick={() => onSelectPlayer(isSelected ? null : player)}
+                onDoubleClick={() => onShowInfo(player)}
+              >
                 {isSelected && (
                   <motion.div
                     initial={{ scale: 0.8 }}
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
-                    className="absolute -inset-1 rounded-full bg-white/30"
+                    className="absolute -inset-1.5 rounded-full bg-white/30"
                   />
                 )}
                 
-                {/* Player circle - all same purple color */}
                 <div
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-sm sm:text-base shadow-xl transition-all ${
+                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-sm shadow-xl transition-all ${
                     isSelected 
                       ? "bg-white text-purple-600 ring-2 ring-white" 
                       : swapMode 
@@ -177,13 +170,11 @@ function FootballPitch({
                   {player.number}
                 </div>
                 
-                {/* Rating badge */}
                 <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full bg-gray-900 flex items-center justify-center border border-gray-700">
                   <span className="text-[9px] font-bold text-green-400">{player.rating}</span>
                 </div>
               </motion.div>
               
-              {/* Player name */}
               <div className={`mt-1 px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold ${
                 isSelected ? "bg-white text-gray-900" : "bg-black/70 text-white"
               }`}>
@@ -197,71 +188,80 @@ function FootballPitch({
   );
 }
 
-// Substitute Card Component
-function SubstituteCard({ 
+// Player Row Component (for list view and subs)
+function PlayerRow({ 
   player, 
   isSelected, 
   onSelect, 
   canSwap,
   onSwap,
   onShowInfo,
+  compact = false,
 }: { 
   player: Player; 
   isSelected: boolean; 
   onSelect: () => void;
-  canSwap: boolean;
-  onSwap: () => void;
+  canSwap?: boolean;
+  onSwap?: () => void;
   onShowInfo: () => void;
+  compact?: boolean;
 }) {
+  const posColor = positionColors[player.position] || "#666";
+  
   return (
     <motion.div
       whileTap={{ scale: 0.98 }}
       onClick={onSelect}
       className={`relative p-3 rounded-xl border transition-all ${
         isSelected 
-          ? "bg-purple-500/20 border-purple-500/50" 
-          : "bg-white/5 border-white/10 hover:bg-white/10"
+          ? "bg-green-500/20 border-green-500/50" 
+          : "bg-[#14141e] border-white/[0.06] hover:bg-[#1a1a28]"
       }`}
     >
       <div className="flex items-center gap-3">
-        {/* Player number */}
+        {/* Player number badge */}
         <div 
-          className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold shadow-lg cursor-pointer`}
-          style={{ backgroundColor: `${positionColors[player.position] || "#666"}20` }}
+          className={`${compact ? "w-10 h-10" : "w-12 h-12"} rounded-xl flex items-center justify-center font-bold shadow-lg cursor-pointer transition-transform hover:scale-105`}
+          style={{ backgroundColor: `${posColor}15`, border: `1px solid ${posColor}30` }}
           onClick={(e: React.MouseEvent) => { e.stopPropagation(); onShowInfo(); }}
         >
-          <span style={{ color: positionColors[player.position] || "#666" }}>{player.number}</span>
+          <span style={{ color: posColor }} className={compact ? "text-sm" : "text-base"}>{player.number}</span>
         </div>
         
         {/* Player info */}
         <div className="flex-1 min-w-0" onClick={(e: React.MouseEvent) => { e.stopPropagation(); onShowInfo(); }}>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs">{getFlag(player.nationality)}</span>
-            <p className="text-sm font-semibold truncate">{player.name}</p>
+            <span className="text-sm">{getFlag(player.nationality)}</span>
+            <p className={`${compact ? "text-sm" : "text-sm"} font-semibold text-white truncate`}>{player.name}</p>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
             <span 
               className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-              style={{ 
-                backgroundColor: `${positionColors[player.position] || "#666"}20`,
-                color: positionColors[player.position] || "#666"
-              }}
+              style={{ backgroundColor: `${posColor}20`, color: posColor }}
             >
               {player.position}
             </span>
-            <span className="text-[10px] font-bold text-green-400">{player.rating}</span>
+            {player.age && (
+              <span className="text-[10px] text-gray-500">{player.age} yrs</span>
+            )}
           </div>
         </div>
         
+        {/* Rating */}
+        <div className="text-right">
+          <span className={`${compact ? "text-xl" : "text-2xl"} font-black text-green-400`}>{player.rating}</span>
+          {!compact && <p className="text-[9px] text-gray-500 uppercase">OVR</p>}
+        </div>
+        
         {/* Swap button */}
-        {canSwap && (
+        {canSwap && onSwap && (
           <motion.button
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={(e: React.MouseEvent) => { e.stopPropagation(); onSwap(); }}
-            className="p-2 rounded-lg bg-green-500 text-white shadow-lg"
+            className="p-2.5 rounded-xl bg-green-500 text-white shadow-lg"
           >
             <RefreshCw size={16} />
           </motion.button>
@@ -271,105 +271,48 @@ function SubstituteCard({
   );
 }
 
-// Player List View
-function PlayerListView({ 
-  players, 
-  selectedPlayer, 
-  onSelectPlayer,
-  onShowPlayerInfo,
-}: {
-  players: Player[];
-  selectedPlayer: Player | null;
-  onSelectPlayer: (player: Player | null) => void;
-  onShowPlayerInfo: (player: Player) => void;
-}) {
+// Squad Stats Summary
+function SquadSummary({ squad }: { squad: Player[] }) {
+  const stats = useMemo(() => {
+    const starters = squad.slice(0, 11);
+    const avgRating = starters.length > 0 
+      ? Math.round(starters.reduce((sum, p) => sum + p.rating, 0) / starters.length)
+      : 0;
+    
+    const positions = {
+      GK: squad.filter(p => p.position === "GK").length,
+      DEF: squad.filter(p => ["CB", "LB", "RB", "LWB", "RWB"].includes(p.position)).length,
+      MID: squad.filter(p => ["CM", "CDM", "CAM", "LM", "RM"].includes(p.position)).length,
+      FWD: squad.filter(p => ["ST", "CF", "LW", "RW"].includes(p.position)).length,
+    };
+    
+    const topRated = [...squad].sort((a, b) => b.rating - a.rating)[0];
+    
+    return { avgRating, positions, topRated, total: squad.length };
+  }, [squad]);
+  
   return (
-    <div className="space-y-2">
-      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold px-1">Starting XI</p>
-      {players.slice(0, 11).map((player, index) => {
-        const isSelected = selectedPlayer?.id === player.id;
-        return (
-          <motion.div
-            key={player.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.02 }}
-            onClick={() => onSelectPlayer(isSelected ? null : player)}
-            className={`p-3 rounded-xl border cursor-pointer transition-all ${
-              isSelected ? "bg-purple-500/20 border-purple-500/50" : "bg-white/5 border-white/10 hover:bg-white/10"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg shadow-lg cursor-pointer"
-                style={{ backgroundColor: `${positionColors[player.position] || "#666"}20` }}
-                onClick={(e) => { e.stopPropagation(); onShowPlayerInfo(player); }}
-              >
-                <span style={{ color: positionColors[player.position] || "#666" }}>{player.number}</span>
-              </div>
-              <div className="flex-1" onClick={(e) => { e.stopPropagation(); onShowPlayerInfo(player); }}>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">{getFlag(player.nationality)}</span>
-                  <p className="text-sm font-bold">{player.name}</p>
-                </div>
-                <span 
-                  className="text-[10px] px-1.5 py-0.5 rounded mt-1 inline-block font-medium"
-                  style={{ 
-                    backgroundColor: `${positionColors[player.position] || "#666"}20`,
-                    color: positionColors[player.position] || "#666"
-                  }}
-                >
-                  {player.position}
-                </span>
-              </div>
-              <div className="text-right">
-                <span className="text-2xl font-black text-green-400">{player.rating}</span>
-                <p className="text-[9px] text-gray-500 uppercase">OVR</p>
-              </div>
-            </div>
-          </motion.div>
-        );
-      })}
-      
-      <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold px-1 mt-4">Substitutes</p>
-      {players.slice(11).map((player, index) => {
-        const isSelected = selectedPlayer?.id === player.id;
-        return (
-          <motion.div
-            key={player.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (index + 11) * 0.02 }}
-            onClick={() => onSelectPlayer(isSelected ? null : player)}
-            className={`p-3 rounded-xl border cursor-pointer transition-all ${
-              isSelected ? "bg-purple-500/20 border-purple-500/50" : "bg-white/5 border-white/10 hover:bg-white/10"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center font-bold shadow-lg cursor-pointer"
-                style={{ backgroundColor: `${positionColors[player.position] || "#666"}20` }}
-                onClick={(e) => { e.stopPropagation(); onShowPlayerInfo(player); }}
-              >
-                <span style={{ color: positionColors[player.position] || "#666" }}>{player.number}</span>
-              </div>
-              <div className="flex-1" onClick={(e) => { e.stopPropagation(); onShowPlayerInfo(player); }}>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs">{getFlag(player.nationality)}</span>
-                  <p className="text-sm font-semibold">{player.name}</p>
-                </div>
-                <span 
-                  className="text-[10px] font-medium"
-                  style={{ color: positionColors[player.position] || "#666" }}
-                >
-                  {player.position}
-                </span>
-              </div>
-              <span className="text-xl font-bold text-green-400/80">{player.rating}</span>
-            </div>
-          </motion.div>
-        );
-      })}
+    <div className="grid grid-cols-4 gap-2">
+      <div className="p-3 rounded-xl bg-[#14141e] border border-white/[0.06] text-center">
+        <Users size={14} className="mx-auto mb-1 text-purple-400" />
+        <p className="text-lg font-bold text-white">{stats.total}</p>
+        <p className="text-[9px] text-gray-500 uppercase">Players</p>
+      </div>
+      <div className="p-3 rounded-xl bg-[#14141e] border border-white/[0.06] text-center">
+        <Star size={14} className="mx-auto mb-1 text-yellow-400" />
+        <p className="text-lg font-bold text-white">{stats.avgRating}</p>
+        <p className="text-[9px] text-gray-500 uppercase">AVG OVR</p>
+      </div>
+      <div className="p-3 rounded-xl bg-[#14141e] border border-white/[0.06] text-center">
+        <Shield size={14} className="mx-auto mb-1 text-blue-400" />
+        <p className="text-lg font-bold text-white">{stats.positions.DEF}</p>
+        <p className="text-[9px] text-gray-500 uppercase">Defenders</p>
+      </div>
+      <div className="p-3 rounded-xl bg-[#14141e] border border-white/[0.06] text-center">
+        <TrendingUp size={14} className="mx-auto mb-1 text-green-400" />
+        <p className="text-lg font-bold text-white">{stats.topRated?.rating || 0}</p>
+        <p className="text-[9px] text-gray-500 uppercase">Best</p>
+      </div>
     </div>
   );
 }
@@ -382,15 +325,15 @@ export default function SquadPage() {
   const [showFormationPicker, setShowFormationPicker] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [playerInfoModal, setPlayerInfoModal] = useState<Player | null>(null);
+  const [positionFilter, setPositionFilter] = useState<string>("all");
   
-  // Use store squad, or generate if empty (fallback)
+  // Use store squad, or generate if empty
   const [localSquad, setLocalSquad] = useState<Player[]>([]);
   
   useEffect(() => {
     if (storeSquad && storeSquad.length > 0) {
       setLocalSquad(storeSquad);
     } else {
-      // Fallback: generate squad if store is empty
       const generated = generateSquadForClub(club);
       setLocalSquad(generated);
       updateSquad(generated);
@@ -401,12 +344,10 @@ export default function SquadPage() {
     ? Math.round(localSquad.slice(0, 11).reduce((sum, p) => sum + p.rating, 0) / 11)
     : 0;
   
-  // Check if selected player is a starter (for swap functionality)
   const selectedIsStarter = selectedPlayer 
     ? localSquad.findIndex(p => p.id === selectedPlayer.id) < 11 && localSquad.findIndex(p => p.id === selectedPlayer.id) >= 0
     : false;
   
-  // Swap players
   const handleSwap = (subPlayer: Player) => {
     if (!selectedPlayer || !selectedIsStarter) return;
     
@@ -415,33 +356,46 @@ export default function SquadPage() {
     
     if (starterIndex === -1 || subIndex === -1) return;
     
-    // Create new array with swapped players
     const newSquad = [...localSquad];
     newSquad[starterIndex] = subPlayer;
     newSquad[subIndex] = selectedPlayer;
     
     setLocalSquad(newSquad);
-    updateSquad(newSquad); // Sync to store and Firebase
+    updateSquad(newSquad);
     setSelectedPlayer(null);
   };
   
   const handleShowPlayerInfo = (player: Player) => {
     setPlayerInfoModal(player);
   };
+  
+  // Filter players for list view
+  const filteredPlayers = useMemo(() => {
+    if (positionFilter === "all") return localSquad;
+    
+    const positionGroups: Record<string, string[]> = {
+      gk: ["GK"],
+      def: ["CB", "LB", "RB", "LWB", "RWB"],
+      mid: ["CM", "CDM", "CAM", "LM", "RM"],
+      fwd: ["ST", "CF", "LW", "RW"],
+    };
+    
+    return localSquad.filter(p => positionGroups[positionFilter]?.includes(p.position));
+  }, [localSquad, positionFilter]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0f]">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1a2e] to-transparent backdrop-blur-md">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+      <div className="sticky top-0 z-40 bg-[#0c0c12]/95 backdrop-blur-md border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link href="/">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                className="p-2.5 rounded-xl bg-[#14141e] border border-white/[0.06] hover:bg-[#1a1a28] transition-colors"
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={18} className="text-slate-400" />
               </motion.button>
             </Link>
             <ClubLogo clubId={club.id} size={36} />
@@ -452,7 +406,7 @@ export default function SquadPage() {
           </div>
           
           {/* View toggle */}
-          <div className="flex items-center p-1 bg-white/5 rounded-xl border border-white/10">
+          <div className="flex items-center p-1 bg-[#14141e] rounded-xl border border-white/[0.06]">
             <button
               onClick={() => setViewMode("formation")}
               className={`p-2 rounded-lg transition-all ${
@@ -473,17 +427,23 @@ export default function SquadPage() {
         </div>
       </div>
 
-      <div className="flex-1 px-4 pb-24">
+      <div className="flex-1 px-4 pb-24 pt-4 space-y-4">
+        {/* Squad Summary Stats */}
+        <SquadSummary squad={localSquad} />
+        
         {viewMode === "formation" ? (
-          <div className="space-y-4 pt-4">
+          <>
             {/* Formation selector */}
             <div className="relative">
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setShowFormationPicker(!showFormationPicker)}
-                className="w-full flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors"
+                className="w-full flex items-center justify-between p-3.5 bg-[#14141e] rounded-xl border border-white/[0.06] hover:bg-[#1a1a28] transition-colors"
               >
-                <span className="text-sm text-gray-300">Formation</span>
+                <div className="flex items-center gap-2">
+                  <Shield size={16} className="text-purple-400" />
+                  <span className="text-sm text-gray-300">Formation</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <span className="text-base font-bold text-purple-400">{formation}</span>
                   <motion.div animate={{ rotate: showFormationPicker ? 180 : 0 }}>
@@ -498,7 +458,7 @@ export default function SquadPage() {
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
-                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#1e1e3f] rounded-xl border border-white/10 overflow-hidden shadow-2xl"
+                    className="absolute top-full left-0 right-0 mt-2 z-50 bg-[#14141e] rounded-xl border border-white/[0.06] overflow-hidden shadow-2xl"
                   >
                     <div className="p-2 grid grid-cols-3 gap-1.5">
                       {Object.keys(formations).map((f) => (
@@ -507,8 +467,8 @@ export default function SquadPage() {
                           onClick={() => { setFormation(f); setShowFormationPicker(false); }}
                           className={`p-2.5 rounded-lg text-sm font-semibold transition-all ${
                             formation === f
-                              ? "bg-purple-500 text-white"
-                              : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                              ? "bg-green-500 text-white"
+                              : "bg-[#1a1a28] text-slate-400 hover:bg-[#222232] hover:text-white"
                           }`}
                         >
                           {f}
@@ -525,7 +485,7 @@ export default function SquadPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2 p-3 bg-green-500/20 rounded-xl border border-green-500/30"
+                className="flex items-center gap-2 p-3 bg-green-500/10 rounded-xl border border-green-500/20"
               >
                 <RefreshCw size={16} className="text-green-400" />
                 <span className="text-xs text-green-300">
@@ -541,16 +501,17 @@ export default function SquadPage() {
               selectedPlayer={selectedPlayer}
               onSelectPlayer={setSelectedPlayer}
               swapMode={selectedIsStarter}
+              onShowInfo={handleShowPlayerInfo}
             />
             
             {/* Substitutes */}
-            <div>
-              <p className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-2 px-1">
-                Substitutes
-              </p>
-              <div className="space-y-2">
+            <div className="bg-[#14141e] rounded-xl border border-white/[0.06] overflow-hidden">
+              <div className="px-4 py-2.5 bg-[#1a1a28] border-b border-white/[0.04]">
+                <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wide">Substitutes</span>
+              </div>
+              <div className="p-3 space-y-2">
                 {localSquad.slice(11).map((player) => (
-                  <SubstituteCard
+                  <PlayerRow
                     key={player.id}
                     player={player}
                     isSelected={selectedPlayer?.id === player.id}
@@ -558,20 +519,74 @@ export default function SquadPage() {
                     canSwap={selectedIsStarter}
                     onSwap={() => handleSwap(player)}
                     onShowInfo={() => handleShowPlayerInfo(player)}
+                    compact
                   />
                 ))}
               </div>
             </div>
-          </div>
+          </>
         ) : (
-          <div className="pt-4">
-            <PlayerListView
-              players={localSquad}
-              selectedPlayer={selectedPlayer}
-              onSelectPlayer={setSelectedPlayer}
-              onShowPlayerInfo={handleShowPlayerInfo}
-            />
-          </div>
+          <>
+            {/* Position Filter */}
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {[
+                { id: "all", label: "All" },
+                { id: "gk", label: "GK" },
+                { id: "def", label: "DEF" },
+                { id: "mid", label: "MID" },
+                { id: "fwd", label: "FWD" },
+              ].map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setPositionFilter(filter.id)}
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                    positionFilter === filter.id
+                      ? "bg-green-500 text-white"
+                      : "bg-[#14141e] text-slate-400 hover:bg-[#1a1a28] border border-white/[0.06]"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Player List */}
+            <div className="bg-[#14141e] rounded-xl border border-white/[0.06] overflow-hidden">
+              <div className="px-4 py-2.5 bg-[#1a1a28] border-b border-white/[0.04] flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wide">
+                  {positionFilter === "all" ? "Full Squad" : positionFilter.toUpperCase()}
+                </span>
+                <span className="text-[10px] text-gray-500">{filteredPlayers.length} players</span>
+              </div>
+              <div className="p-3 space-y-2">
+                {filteredPlayers.map((player, index) => {
+                  const isStarter = localSquad.indexOf(player) < 11;
+                  return (
+                    <motion.div
+                      key={player.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                    >
+                      <PlayerRow
+                        player={player}
+                        isSelected={selectedPlayer?.id === player.id}
+                        onSelect={() => setSelectedPlayer(selectedPlayer?.id === player.id ? null : player)}
+                        onShowInfo={() => handleShowPlayerInfo(player)}
+                      />
+                      {isStarter && (
+                        <div className="mt-1 ml-14">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-green-500/20 text-green-400 font-medium">
+                            Starting XI
+                          </span>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
         )}
       </div>
       

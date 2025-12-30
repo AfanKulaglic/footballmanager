@@ -142,24 +142,24 @@ export default function HistoryPage() {
   }, [seasonHistory, currentSeason]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0f]">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1a2e] to-transparent backdrop-blur-md">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+      <div className="sticky top-0 z-40 bg-[#0c0c12]/95 backdrop-blur-md border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link href="/">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+                className="p-2.5 rounded-xl bg-[#14141e] border border-white/[0.06] hover:bg-[#1a1a28] transition-colors"
               >
-                <ArrowLeft size={18} />
+                <ArrowLeft size={18} className="text-slate-400" />
               </motion.button>
             </Link>
             <ClubLogo clubId={club.id} size={36} />
             <div>
               <h1 className="text-lg font-bold text-white">Match History</h1>
-              <p className="text-[10px] text-gray-400">{seasonResults.length} matches • Season {selectedSeason === "current" ? currentSeason : selectedSeason}</p>
+              <p className="text-[10px] text-slate-500">{seasonResults.length} matches • Season {selectedSeason === "current" ? currentSeason : selectedSeason}</p>
             </div>
           </div>
           
@@ -168,7 +168,7 @@ export default function HistoryPage() {
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowFilters(!showFilters)}
             className={`p-2.5 rounded-xl border transition-colors ${
-              showFilters ? "bg-purple-500/20 border-purple-500/50 text-purple-400" : "bg-white/5 border-white/10 text-gray-400"
+              showFilters ? "bg-purple-500/20 border-purple-500/50 text-purple-400" : "bg-[#14141e] border-white/[0.06] text-slate-400"
             }`}
           >
             <Filter size={18} />

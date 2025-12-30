@@ -412,30 +412,28 @@ export default function StatsPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0f]">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1a2e] to-transparent backdrop-blur-md">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <Link href="/">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
-              >
-                <ArrowLeft size={18} />
-              </motion.button>
-            </Link>
-            <ClubLogo clubId={club.id} size={36} />
-            <div>
-              <h1 className="text-lg font-bold text-white">Statistics</h1>
-              <p className="text-[10px] text-gray-400">Season {currentSeason}/{(currentSeason + 1).toString().slice(-2)} • MD {currentMatchday}/{maxMatchdays}</p>
-            </div>
+      <div className="sticky top-0 z-40 bg-[#0c0c12]/95 backdrop-blur-md border-b border-white/[0.06]">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <Link href="/">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2.5 rounded-xl bg-[#14141e] border border-white/[0.06] hover:bg-[#1a1a28] transition-colors"
+            >
+              <ArrowLeft size={18} className="text-slate-400" />
+            </motion.button>
+          </Link>
+          <ClubLogo clubId={club.id} size={36} />
+          <div>
+            <h1 className="text-lg font-bold text-white">Statistics</h1>
+            <p className="text-[10px] text-slate-500">Season {currentSeason}/{(currentSeason + 1).toString().slice(-2)} • MD {currentMatchday}/{maxMatchdays}</p>
           </div>
         </div>
         
         {/* Tabs */}
-        <div className="px-2 py-2 border-b border-white/5 bg-white/[0.02]">
+        <div className="px-2 py-2 border-t border-white/[0.04] bg-[#0c0c12]/50">
           <div className="flex gap-1 overflow-x-auto pb-1">
             {tabs.map(tab => (
               <button
@@ -443,8 +441,8 @@ export default function StatsPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all ${
                   activeTab === tab.id
-                    ? "bg-purple-500 text-white"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10"
+                    ? "bg-green-500 text-white"
+                    : "bg-[#14141e] text-slate-400 hover:bg-[#1a1a28] border border-white/[0.06]"
                 }`}
               >
                 <tab.icon size={14} />
@@ -479,17 +477,17 @@ export default function StatsPage() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
-                    className="p-3 rounded-xl bg-white/5 border border-white/10 text-center"
+                    className="p-3 rounded-xl bg-[#14141e] border border-white/[0.06] text-center"
                   >
                     <stat.icon size={16} className={`mx-auto mb-1 ${stat.color}`} />
                     <p className="text-lg font-bold text-white">{stat.value}</p>
-                    <p className="text-[9px] text-gray-500 uppercase">{stat.label}</p>
+                    <p className="text-[9px] text-slate-500 uppercase">{stat.label}</p>
                   </motion.div>
                 ))}
               </div>
               
               {/* Form */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <div className="flex items-center justify-between mb-3">
                   <SectionLabel>Current Form</SectionLabel>
                   {teamStats.currentStreak.count > 0 && (
@@ -515,81 +513,81 @@ export default function StatsPage() {
                       {result}
                     </div>
                   )) : (
-                    <p className="text-gray-500 text-sm">No matches played yet</p>
+                    <p className="text-slate-500 text-sm">No matches played yet</p>
                   )}
                 </div>
               </div>
               
               {/* Season Progress */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Season Progress</SectionLabel>
                 <div className="mt-3">
-                  <div className="flex justify-between text-xs text-gray-400 mb-1">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
                     <span>Matchday {currentMatchday - 1} of {maxMatchdays}</span>
                     <span>{Math.round(((currentMatchday - 1) / maxMatchdays) * 100)}%</span>
                   </div>
-                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-2 bg-[#1a1a28] rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all"
+                      className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all"
                       style={{ width: `${((currentMatchday - 1) / maxMatchdays) * 100}%` }}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-4">
-                  <div className="text-center p-2 rounded-lg bg-white/5">
+                  <div className="text-center p-2 rounded-lg bg-[#1a1a28]">
                     <p className="text-lg font-bold text-white">{teamStats.played}</p>
-                    <p className="text-[9px] text-gray-500">Played</p>
+                    <p className="text-[9px] text-slate-500">Played</p>
                   </div>
-                  <div className="text-center p-2 rounded-lg bg-white/5">
+                  <div className="text-center p-2 rounded-lg bg-[#1a1a28]">
                     <p className="text-lg font-bold text-white">{maxMatchdays - (currentMatchday - 1)}</p>
-                    <p className="text-[9px] text-gray-500">Remaining</p>
+                    <p className="text-[9px] text-slate-500">Remaining</p>
                   </div>
-                  <div className="text-center p-2 rounded-lg bg-white/5">
-                    <p className="text-lg font-bold text-purple-400">{teamStats.pointsPerGame}</p>
-                    <p className="text-[9px] text-gray-500">PPG</p>
+                  <div className="text-center p-2 rounded-lg bg-[#1a1a28]">
+                    <p className="text-lg font-bold text-green-400">{teamStats.pointsPerGame}</p>
+                    <p className="text-[9px] text-slate-500">PPG</p>
                   </div>
                 </div>
               </div>
               
               {/* Goals Overview */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Goals</SectionLabel>
                 <div className="grid grid-cols-4 gap-2 mt-3">
                   <div className="text-center p-3 rounded-lg bg-green-500/10">
                     <p className="text-2xl font-bold text-green-400">{teamStats.goalsScored}</p>
-                    <p className="text-[9px] text-gray-500">Scored</p>
+                    <p className="text-[9px] text-slate-500">Scored</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-red-500/10">
                     <p className="text-2xl font-bold text-red-400">{teamStats.goalsConceded}</p>
-                    <p className="text-[9px] text-gray-500">Conceded</p>
+                    <p className="text-[9px] text-slate-500">Conceded</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-blue-500/10">
                     <p className="text-2xl font-bold text-blue-400">{teamStats.cleanSheets}</p>
-                    <p className="text-[9px] text-gray-500">Clean Sheets</p>
+                    <p className="text-[9px] text-slate-500">Clean Sheets</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-orange-500/10">
                     <p className="text-2xl font-bold text-orange-400">{teamStats.goalsPerGame}</p>
-                    <p className="text-[9px] text-gray-500">Per Game</p>
+                    <p className="text-[9px] text-slate-500">Per Game</p>
                   </div>
                 </div>
               </div>
               
               {/* Career Summary */}
               {seasonHistory.length > 0 && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+                <div className="p-4 rounded-xl bg-[#14141e] border border-green-500/20">
                   <SectionLabel>Career Summary</SectionLabel>
                   <div className="grid grid-cols-3 gap-2 mt-3">
-                    <div className="text-center p-2 rounded-lg bg-white/5">
+                    <div className="text-center p-2 rounded-lg bg-[#1a1a28]">
                       <p className="text-lg font-bold text-white">{careerStats.seasonsManaged}</p>
-                      <p className="text-[9px] text-gray-500">Seasons</p>
+                      <p className="text-[9px] text-slate-500">Seasons</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-yellow-500/10">
                       <p className="text-lg font-bold text-yellow-400">{careerStats.championships}</p>
-                      <p className="text-[9px] text-gray-500">Titles</p>
+                      <p className="text-[9px] text-slate-500">Titles</p>
                     </div>
                     <div className="text-center p-2 rounded-lg bg-green-500/10">
                       <p className="text-lg font-bold text-green-400">{careerStats.winRate}%</p>
-                      <p className="text-[9px] text-gray-500">Win Rate</p>
+                      <p className="text-[9px] text-slate-500">Win Rate</p>
                     </div>
                   </div>
                 </div>
@@ -607,29 +605,29 @@ export default function StatsPage() {
               className="space-y-4"
             >
               {/* W/D/L Breakdown */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Results Breakdown</SectionLabel>
                 <div className="grid grid-cols-3 gap-3 mt-3">
                   <div className="text-center p-4 rounded-xl bg-green-500/10 border border-green-500/20">
                     <p className="text-3xl font-bold text-green-400">{teamStats.wins}</p>
-                    <p className="text-xs text-gray-400 mt-1">Wins</p>
+                    <p className="text-xs text-slate-400 mt-1">Wins</p>
                     <p className="text-[10px] text-green-400/60">{teamStats.played > 0 ? Math.round((teamStats.wins / teamStats.played) * 100) : 0}%</p>
                   </div>
                   <div className="text-center p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/20">
                     <p className="text-3xl font-bold text-yellow-400">{teamStats.draws}</p>
-                    <p className="text-xs text-gray-400 mt-1">Draws</p>
+                    <p className="text-xs text-slate-400 mt-1">Draws</p>
                     <p className="text-[10px] text-yellow-400/60">{teamStats.played > 0 ? Math.round((teamStats.draws / teamStats.played) * 100) : 0}%</p>
                   </div>
                   <div className="text-center p-4 rounded-xl bg-red-500/10 border border-red-500/20">
                     <p className="text-3xl font-bold text-red-400">{teamStats.losses}</p>
-                    <p className="text-xs text-gray-400 mt-1">Losses</p>
+                    <p className="text-xs text-slate-400 mt-1">Losses</p>
                     <p className="text-[10px] text-red-400/60">{teamStats.played > 0 ? Math.round((teamStats.losses / teamStats.played) * 100) : 0}%</p>
                   </div>
                 </div>
               </div>
               
               {/* Home vs Away */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Home vs Away</SectionLabel>
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   {/* Home */}
@@ -640,19 +638,19 @@ export default function StatsPage() {
                     </div>
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Played</span>
+                        <span className="text-slate-400">Played</span>
                         <span className="text-white font-medium">{teamStats.home.played}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">W-D-L</span>
+                        <span className="text-slate-400">W-D-L</span>
                         <span className="text-white font-medium">{teamStats.home.wins}-{teamStats.home.draws}-{teamStats.home.losses}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Goals</span>
+                        <span className="text-slate-400">Goals</span>
                         <span className="text-white font-medium">{teamStats.home.gf}-{teamStats.home.ga}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Points</span>
+                        <span className="text-slate-400">Points</span>
                         <span className="text-blue-400 font-medium">{teamStats.home.wins * 3 + teamStats.home.draws}</span>
                       </div>
                     </div>
@@ -666,19 +664,19 @@ export default function StatsPage() {
                     </div>
                     <div className="space-y-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Played</span>
+                        <span className="text-slate-400">Played</span>
                         <span className="text-white font-medium">{teamStats.away.played}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">W-D-L</span>
+                        <span className="text-slate-400">W-D-L</span>
                         <span className="text-white font-medium">{teamStats.away.wins}-{teamStats.away.draws}-{teamStats.away.losses}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Goals</span>
+                        <span className="text-slate-400">Goals</span>
                         <span className="text-white font-medium">{teamStats.away.gf}-{teamStats.away.ga}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-400">Points</span>
+                        <span className="text-slate-400">Points</span>
                         <span className="text-orange-400 font-medium">{teamStats.away.wins * 3 + teamStats.away.draws}</span>
                       </div>
                     </div>
@@ -687,45 +685,45 @@ export default function StatsPage() {
               </div>
               
               {/* Streaks */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Streaks</SectionLabel>
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   <div className="text-center p-3 rounded-lg bg-green-500/10">
                     <Flame size={18} className="mx-auto text-green-400 mb-1" />
                     <p className="text-xl font-bold text-green-400">{teamStats.longestWinStreak}</p>
-                    <p className="text-[9px] text-gray-500">Best Win Streak</p>
+                    <p className="text-[9px] text-slate-500">Best Win Streak</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-blue-500/10">
                     <Shield size={18} className="mx-auto text-blue-400 mb-1" />
                     <p className="text-xl font-bold text-blue-400">{teamStats.longestUnbeatenStreak}</p>
-                    <p className="text-[9px] text-gray-500">Best Unbeaten</p>
+                    <p className="text-[9px] text-slate-500">Best Unbeaten</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-red-500/10">
                     <TrendingDown size={18} className="mx-auto text-red-400 mb-1" />
                     <p className="text-xl font-bold text-red-400">{teamStats.longestLossStreak}</p>
-                    <p className="text-[9px] text-gray-500">Worst Loss Streak</p>
+                    <p className="text-[9px] text-slate-500">Worst Loss Streak</p>
                   </div>
                 </div>
               </div>
               
               {/* Scoring Stats */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Scoring Stats</SectionLabel>
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Goals Per Game</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Goals Per Game</p>
                     <p className="text-xl font-bold text-green-400">{teamStats.goalsPerGame}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Conceded Per Game</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Conceded Per Game</p>
                     <p className="text-xl font-bold text-red-400">{teamStats.concededPerGame}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Clean Sheets</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Clean Sheets</p>
                     <p className="text-xl font-bold text-blue-400">{teamStats.cleanSheets}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Failed to Score</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Failed to Score</p>
                     <p className="text-xl font-bold text-orange-400">{teamStats.failedToScore}</p>
                   </div>
                 </div>
@@ -743,50 +741,50 @@ export default function StatsPage() {
               className="space-y-4"
             >
               {/* Squad Overview */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Squad Overview</SectionLabel>
                 <div className="grid grid-cols-4 gap-2 mt-3">
                   <div className="text-center p-3 rounded-lg bg-purple-500/10">
                     <p className="text-2xl font-bold text-purple-400">{squadStats.total}</p>
-                    <p className="text-[9px] text-gray-500">Players</p>
+                    <p className="text-[9px] text-slate-500">Players</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-green-500/10">
                     <p className="text-2xl font-bold text-green-400">{squadStats.avgRating}</p>
-                    <p className="text-[9px] text-gray-500">Avg Rating</p>
+                    <p className="text-[9px] text-slate-500">Avg Rating</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-blue-500/10">
                     <p className="text-2xl font-bold text-blue-400">{squadStats.avgAge}</p>
-                    <p className="text-[9px] text-gray-500">Avg Age</p>
+                    <p className="text-[9px] text-slate-500">Avg Age</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-yellow-500/10">
                     <p className="text-lg font-bold text-yellow-400">€{formatMoney(squadStats.totalValue)}</p>
-                    <p className="text-[9px] text-gray-500">Total Value</p>
+                    <p className="text-[9px] text-slate-500">Total Value</p>
                   </div>
                 </div>
               </div>
               
               {/* Position Breakdown */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Position Breakdown</SectionLabel>
                 <div className="grid grid-cols-4 gap-2 mt-3">
                   <div className="text-center p-3 rounded-lg bg-yellow-500/10">
                     <p className="text-xl font-bold text-yellow-400">{squadStats.goalkeepers}</p>
-                    <p className="text-[9px] text-gray-500">GK</p>
+                    <p className="text-[9px] text-slate-500">GK</p>
                     <p className="text-[8px] text-yellow-400/60">Avg: {squadStats.avgRatingByPosition.GK}</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-blue-500/10">
                     <p className="text-xl font-bold text-blue-400">{squadStats.defenders}</p>
-                    <p className="text-[9px] text-gray-500">DEF</p>
+                    <p className="text-[9px] text-slate-500">DEF</p>
                     <p className="text-[8px] text-blue-400/60">Avg: {squadStats.avgRatingByPosition.DEF}</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-green-500/10">
                     <p className="text-xl font-bold text-green-400">{squadStats.midfielders}</p>
-                    <p className="text-[9px] text-gray-500">MID</p>
+                    <p className="text-[9px] text-slate-500">MID</p>
                     <p className="text-[8px] text-green-400/60">Avg: {squadStats.avgRatingByPosition.MID}</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-red-500/10">
                     <p className="text-xl font-bold text-red-400">{squadStats.forwards}</p>
-                    <p className="text-[9px] text-gray-500">FWD</p>
+                    <p className="text-[9px] text-slate-500">FWD</p>
                     <p className="text-[8px] text-red-400/60">Avg: {squadStats.avgRatingByPosition.FWD}</p>
                   </div>
                 </div>
@@ -837,15 +835,15 @@ export default function StatsPage() {
               )}
               
               {/* Nationalities */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Nationalities</SectionLabel>
                 <div className="flex flex-wrap gap-2 mt-3">
                   {Object.entries(squadStats.nationalities)
                     .sort(([, a], [, b]) => b - a)
                     .slice(0, 10)
                     .map(([nat, count]) => (
-                      <span key={nat} className="px-2 py-1 rounded-lg bg-white/5 text-xs text-gray-300">
-                        {nat}: <span className="text-purple-400 font-medium">{count}</span>
+                      <span key={nat} className="px-2 py-1 rounded-lg bg-[#1a1a28] text-xs text-slate-300">
+                        {nat}: <span className="text-green-400 font-medium">{count}</span>
                       </span>
                     ))}
                 </div>
@@ -863,21 +861,21 @@ export default function StatsPage() {
               className="space-y-4"
             >
               {/* Your Position */}
-              <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20 border border-purple-500/30">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-green-500/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-400">Current Position</p>
-                    <p className="text-4xl font-bold text-white">{leagueStats.position}<span className="text-lg text-gray-400">{getOrdinal(leagueStats.position)}</span></p>
+                    <p className="text-xs text-slate-400">Current Position</p>
+                    <p className="text-4xl font-bold text-white">{leagueStats.position}<span className="text-lg text-slate-400">{getOrdinal(leagueStats.position)}</span></p>
                   </div>
                   <div className="text-right">
                     {leagueStats.pointsOffTop > 0 ? (
                       <>
-                        <p className="text-xs text-gray-400">Points off top</p>
+                        <p className="text-xs text-slate-400">Points off top</p>
                         <p className="text-2xl font-bold text-red-400">-{leagueStats.pointsOffTop}</p>
                       </>
                     ) : (
                       <>
-                        <p className="text-xs text-gray-400">Status</p>
+                        <p className="text-xs text-slate-400">Status</p>
                         <p className="text-lg font-bold text-green-400">🏆 Leader</p>
                       </>
                     )}
@@ -886,60 +884,60 @@ export default function StatsPage() {
               </div>
               
               {/* League Overview */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>League Overview</SectionLabel>
                 <div className="grid grid-cols-2 gap-2 mt-3">
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Total Goals</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Total Goals</p>
                     <p className="text-xl font-bold text-white">{leagueStats.totalGoals}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Avg Goals/Game</p>
-                    <p className="text-xl font-bold text-purple-400">{leagueStats.avgGoalsPerGame}</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Avg Goals/Game</p>
+                    <p className="text-xl font-bold text-green-400">{leagueStats.avgGoalsPerGame}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Matches Played</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Matches Played</p>
                     <p className="text-xl font-bold text-white">{leagueStats.matchesPlayed}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-white/5">
-                    <p className="text-xs text-gray-400">Teams</p>
+                  <div className="p-3 rounded-lg bg-[#1a1a28]">
+                    <p className="text-xs text-slate-400">Teams</p>
                     <p className="text-xl font-bold text-white">{leagueStats.totalTeams}</p>
                   </div>
                 </div>
               </div>
               
               {/* Home/Away/Draw Distribution */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Result Distribution</SectionLabel>
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   <div className="text-center p-3 rounded-lg bg-blue-500/10">
                     <Home size={16} className="mx-auto text-blue-400 mb-1" />
                     <p className="text-xl font-bold text-blue-400">{leagueStats.homeWins}</p>
-                    <p className="text-[9px] text-gray-500">Home Wins</p>
+                    <p className="text-[9px] text-slate-500">Home Wins</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-yellow-500/10">
                     <p className="text-xl font-bold text-yellow-400">{leagueStats.draws}</p>
-                    <p className="text-[9px] text-gray-500">Draws</p>
+                    <p className="text-[9px] text-slate-500">Draws</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-orange-500/10">
                     <Plane size={16} className="mx-auto text-orange-400 mb-1" />
                     <p className="text-xl font-bold text-orange-400">{leagueStats.awayWins}</p>
-                    <p className="text-[9px] text-gray-500">Away Wins</p>
+                    <p className="text-[9px] text-slate-500">Away Wins</p>
                   </div>
                 </div>
               </div>
               
               {/* Top Scorers (Teams) */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Top Scoring Teams</SectionLabel>
                 <div className="space-y-2 mt-3">
                   {leagueStats.topScorers.map((team, i) => (
-                    <div key={team.club.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                    <div key={team.club.id} className="flex items-center gap-3 p-2 rounded-lg bg-[#1a1a28]">
                       <span className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
-                        i === 0 ? "bg-yellow-500/20 text-yellow-400" : "bg-white/10 text-gray-400"
+                        i === 0 ? "bg-yellow-500/20 text-yellow-400" : "bg-white/10 text-slate-400"
                       }`}>{i + 1}</span>
                       <ClubLogo clubId={team.club.id} size={24} />
-                      <span className={`flex-1 text-sm ${team.club.id === club.id ? "text-purple-400 font-medium" : "text-white"}`}>
+                      <span className={`flex-1 text-sm ${team.club.id === club.id ? "text-green-400 font-medium" : "text-white"}`}>
                         {getDisplayShortName(team.club.id, team.club.shortName)}
                       </span>
                       <span className="text-green-400 font-bold">{team.gf}</span>
@@ -949,16 +947,16 @@ export default function StatsPage() {
               </div>
               
               {/* Best Defense */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Best Defense</SectionLabel>
                 <div className="space-y-2 mt-3">
                   {leagueStats.bestDefense.map((team, i) => (
-                    <div key={team.club.id} className="flex items-center gap-3 p-2 rounded-lg bg-white/5">
+                    <div key={team.club.id} className="flex items-center gap-3 p-2 rounded-lg bg-[#1a1a28]">
                       <span className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
-                        i === 0 ? "bg-blue-500/20 text-blue-400" : "bg-white/10 text-gray-400"
+                        i === 0 ? "bg-blue-500/20 text-blue-400" : "bg-white/10 text-slate-400"
                       }`}>{i + 1}</span>
                       <ClubLogo clubId={team.club.id} size={24} />
-                      <span className={`flex-1 text-sm ${team.club.id === club.id ? "text-purple-400 font-medium" : "text-white"}`}>
+                      <span className={`flex-1 text-sm ${team.club.id === club.id ? "text-green-400 font-medium" : "text-white"}`}>
                         {getDisplayShortName(team.club.id, team.club.shortName)}
                       </span>
                       <span className="text-blue-400 font-bold">{team.ga}</span>
@@ -980,7 +978,7 @@ export default function StatsPage() {
             >
               {/* Biggest Win */}
               {teamStats.biggestWin.match && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                <div className="p-4 rounded-xl bg-[#14141e] border border-green-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Trophy size={18} className="text-green-400" />
                     <SectionLabel>Biggest Win</SectionLabel>
@@ -992,7 +990,7 @@ export default function StatsPage() {
               
               {/* Biggest Loss */}
               {teamStats.biggestLoss.match && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-red-500/10 to-rose-500/10 border border-red-500/20">
+                <div className="p-4 rounded-xl bg-[#14141e] border border-red-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingDown size={18} className="text-red-400" />
                     <SectionLabel>Biggest Loss</SectionLabel>
@@ -1004,7 +1002,7 @@ export default function StatsPage() {
               
               {/* Highest Scoring */}
               {teamStats.highestScoring.match && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/20">
+                <div className="p-4 rounded-xl bg-[#14141e] border border-yellow-500/20">
                   <div className="flex items-center gap-2 mb-3">
                     <Flame size={18} className="text-yellow-400" />
                     <SectionLabel>Highest Scoring Match</SectionLabel>
@@ -1015,23 +1013,23 @@ export default function StatsPage() {
               )}
               
               {/* Season Records */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Season Records</SectionLabel>
                 <div className="grid grid-cols-2 gap-2 mt-3">
                   <div className="p-3 rounded-lg bg-green-500/10">
-                    <p className="text-xs text-gray-400">Best Win Streak</p>
+                    <p className="text-xs text-slate-400">Best Win Streak</p>
                     <p className="text-xl font-bold text-green-400">{teamStats.longestWinStreak} games</p>
                   </div>
                   <div className="p-3 rounded-lg bg-blue-500/10">
-                    <p className="text-xs text-gray-400">Best Unbeaten Run</p>
+                    <p className="text-xs text-slate-400">Best Unbeaten Run</p>
                     <p className="text-xl font-bold text-blue-400">{teamStats.longestUnbeatenStreak} games</p>
                   </div>
                   <div className="p-3 rounded-lg bg-purple-500/10">
-                    <p className="text-xs text-gray-400">Clean Sheets</p>
+                    <p className="text-xs text-slate-400">Clean Sheets</p>
                     <p className="text-xl font-bold text-purple-400">{teamStats.cleanSheets}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-yellow-500/10">
-                    <p className="text-xs text-gray-400">Goals Scored</p>
+                    <p className="text-xs text-slate-400">Goals Scored</p>
                     <p className="text-xl font-bold text-yellow-400">{teamStats.goalsScored}</p>
                   </div>
                 </div>
@@ -1039,27 +1037,27 @@ export default function StatsPage() {
               
               {/* Career Records */}
               {seasonHistory.length > 0 && (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20">
+                <div className="p-4 rounded-xl bg-[#14141e] border border-green-500/20">
                   <SectionLabel>Career Records</SectionLabel>
                   <div className="grid grid-cols-2 gap-2 mt-3">
-                    <div className="p-3 rounded-lg bg-white/5">
-                      <p className="text-xs text-gray-400">Best Finish</p>
+                    <div className="p-3 rounded-lg bg-[#1a1a28]">
+                      <p className="text-xs text-slate-400">Best Finish</p>
                       <p className="text-xl font-bold text-green-400">{careerStats.bestFinish}{getOrdinal(careerStats.bestFinish)}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/5">
-                      <p className="text-xs text-gray-400">Worst Finish</p>
+                    <div className="p-3 rounded-lg bg-[#1a1a28]">
+                      <p className="text-xs text-slate-400">Worst Finish</p>
                       <p className="text-xl font-bold text-red-400">{careerStats.worstFinish}{getOrdinal(careerStats.worstFinish)}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/5">
-                      <p className="text-xs text-gray-400">Total Wins</p>
+                    <div className="p-3 rounded-lg bg-[#1a1a28]">
+                      <p className="text-xs text-slate-400">Total Wins</p>
                       <p className="text-xl font-bold text-white">{careerStats.totalWins}</p>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/5">
-                      <p className="text-xs text-gray-400">Total Goals</p>
+                    <div className="p-3 rounded-lg bg-[#1a1a28]">
+                      <p className="text-xs text-slate-400">Total Goals</p>
                       <p className="text-xl font-bold text-white">{careerStats.totalGoalsFor}</p>
                     </div>
                     <div className="p-3 rounded-lg bg-yellow-500/10 col-span-2">
-                      <p className="text-xs text-gray-400">Championships</p>
+                      <p className="text-xs text-slate-400">Championships</p>
                       <p className="text-2xl font-bold text-yellow-400">{careerStats.championships} 🏆</p>
                     </div>
                   </div>
@@ -1068,9 +1066,9 @@ export default function StatsPage() {
               
               {results.length === 0 && (
                 <div className="text-center py-12">
-                  <Trophy size={48} className="mx-auto text-gray-600 mb-4" />
-                  <p className="text-gray-400">No matches played yet</p>
-                  <p className="text-gray-600 text-sm">Play matches to see your records</p>
+                  <Trophy size={48} className="mx-auto text-slate-600 mb-4" />
+                  <p className="text-slate-400">No matches played yet</p>
+                  <p className="text-slate-600 text-sm">Play matches to see your records</p>
                 </div>
               )}
             </motion.div>
@@ -1086,10 +1084,10 @@ export default function StatsPage() {
               className="space-y-4"
             >
               {/* Balance */}
-              <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-green-500/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-gray-400">Current Balance</p>
+                    <p className="text-xs text-slate-400">Current Balance</p>
                     <p className="text-3xl font-bold text-green-400">€{formatMoney(transferStats.currentBalance)}</p>
                   </div>
                   <DollarSign size={32} className="text-green-400/30" />
@@ -1097,40 +1095,40 @@ export default function StatsPage() {
               </div>
               
               {/* Transfer Summary */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Transfer Summary</SectionLabel>
                 <div className="grid grid-cols-3 gap-2 mt-3">
-                  <div className="text-center p-3 rounded-lg bg-white/5">
+                  <div className="text-center p-3 rounded-lg bg-[#1a1a28]">
                     <p className="text-xl font-bold text-white">{transferStats.totalTransfers}</p>
-                    <p className="text-[9px] text-gray-500">Total Transfers</p>
+                    <p className="text-[9px] text-slate-500">Total Transfers</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-green-500/10">
                     <p className="text-xl font-bold text-green-400">{transferStats.buys}</p>
-                    <p className="text-[9px] text-gray-500">Signings</p>
+                    <p className="text-[9px] text-slate-500">Signings</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-red-500/10">
                     <p className="text-xl font-bold text-red-400">{transferStats.sells}</p>
-                    <p className="text-[9px] text-gray-500">Sales</p>
+                    <p className="text-[9px] text-slate-500">Sales</p>
                   </div>
                 </div>
               </div>
               
               {/* Spending */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Transfer Spending</SectionLabel>
                 <div className="space-y-3 mt-3">
                   <div className="flex justify-between items-center p-3 rounded-lg bg-red-500/10">
-                    <span className="text-sm text-gray-400">Total Spent</span>
+                    <span className="text-sm text-slate-400">Total Spent</span>
                     <span className="text-lg font-bold text-red-400">€{formatMoney(transferStats.totalSpent)}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 rounded-lg bg-green-500/10">
-                    <span className="text-sm text-gray-400">Total Received</span>
+                    <span className="text-sm text-slate-400">Total Received</span>
                     <span className="text-lg font-bold text-green-400">€{formatMoney(transferStats.totalReceived)}</span>
                   </div>
                   <div className={`flex justify-between items-center p-3 rounded-lg ${
                     transferStats.netSpend > 0 ? "bg-red-500/10" : "bg-green-500/10"
                   }`}>
-                    <span className="text-sm text-gray-400">Net Spend</span>
+                    <span className="text-sm text-slate-400">Net Spend</span>
                     <span className={`text-lg font-bold ${transferStats.netSpend > 0 ? "text-red-400" : "text-green-400"}`}>
                       {transferStats.netSpend > 0 ? "-" : "+"}€{formatMoney(Math.abs(transferStats.netSpend))}
                     </span>
@@ -1140,16 +1138,16 @@ export default function StatsPage() {
               
               {/* Record Transfers */}
               {(transferStats.biggestBuy || transferStats.biggestSale) && (
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                   <SectionLabel>Record Transfers</SectionLabel>
                   <div className="space-y-3 mt-3">
                     {transferStats.biggestBuy && (
                       <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">Record Signing</p>
+                        <p className="text-[10px] text-slate-500 uppercase mb-1">Record Signing</p>
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-sm font-medium text-white">{transferStats.biggestBuy.player.name}</p>
-                            <p className="text-[10px] text-gray-400">{transferStats.biggestBuy.player.position} • {transferStats.biggestBuy.player.rating} OVR</p>
+                            <p className="text-[10px] text-slate-400">{transferStats.biggestBuy.player.position} • {transferStats.biggestBuy.player.rating} OVR</p>
                           </div>
                           <p className="text-lg font-bold text-green-400">€{formatMoney(transferStats.biggestBuy.fee)}</p>
                         </div>
@@ -1157,11 +1155,11 @@ export default function StatsPage() {
                     )}
                     {transferStats.biggestSale && (
                       <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                        <p className="text-[10px] text-gray-500 uppercase mb-1">Record Sale</p>
+                        <p className="text-[10px] text-slate-500 uppercase mb-1">Record Sale</p>
                         <div className="flex justify-between items-center">
                           <div>
                             <p className="text-sm font-medium text-white">{transferStats.biggestSale.player.name}</p>
-                            <p className="text-[10px] text-gray-400">{transferStats.biggestSale.player.position} • {transferStats.biggestSale.player.rating} OVR</p>
+                            <p className="text-[10px] text-slate-400">{transferStats.biggestSale.player.position} • {transferStats.biggestSale.player.rating} OVR</p>
                           </div>
                           <p className="text-lg font-bold text-red-400">€{formatMoney(transferStats.biggestSale.fee)}</p>
                         </div>
@@ -1172,35 +1170,35 @@ export default function StatsPage() {
               )}
               
               {/* Squad Value */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Squad Value</SectionLabel>
                 <div className="mt-3">
                   <div className="flex justify-between items-center p-3 rounded-lg bg-purple-500/10">
-                    <span className="text-sm text-gray-400">Total Squad Value</span>
+                    <span className="text-sm text-slate-400">Total Squad Value</span>
                     <span className="text-lg font-bold text-purple-400">€{formatMoney(squadStats.totalValue)}</span>
                   </div>
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-white/5 mt-2">
-                    <span className="text-sm text-gray-400">Avg Player Value</span>
+                  <div className="flex justify-between items-center p-3 rounded-lg bg-[#1a1a28] mt-2">
+                    <span className="text-sm text-slate-400">Avg Player Value</span>
                     <span className="text-lg font-bold text-white">€{formatMoney(squadStats.total > 0 ? squadStats.totalValue / squadStats.total : 0)}</span>
                   </div>
                 </div>
               </div>
               
               {/* Scouting */}
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+              <div className="p-4 rounded-xl bg-[#14141e] border border-white/[0.06]">
                 <SectionLabel>Scouting Department</SectionLabel>
                 <div className="grid grid-cols-3 gap-2 mt-3">
                   <div className="text-center p-3 rounded-lg bg-blue-500/10">
                     <p className="text-xl font-bold text-blue-400">{transferStats.scouts}</p>
-                    <p className="text-[9px] text-gray-500">Scouts</p>
+                    <p className="text-[9px] text-slate-500">Scouts</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-yellow-500/10">
                     <p className="text-xl font-bold text-yellow-400">{transferStats.scoutReports}</p>
-                    <p className="text-[9px] text-gray-500">Reports</p>
+                    <p className="text-[9px] text-slate-500">Reports</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-green-500/10">
                     <p className="text-xl font-bold text-green-400">{transferStats.completedReports}</p>
-                    <p className="text-[9px] text-gray-500">Completed</p>
+                    <p className="text-[9px] text-slate-500">Completed</p>
                   </div>
                 </div>
               </div>
@@ -1216,9 +1214,12 @@ export default function StatsPage() {
 // Helper Components
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">
-      {children}
-    </span>
+    <div className="flex items-center gap-2 mb-2">
+      <div className="w-1 h-3 bg-green-500 rounded-full" />
+      <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+        {children}
+      </span>
+    </div>
   );
 }
 
@@ -1245,16 +1246,16 @@ interface CollapsibleSectionProps {
 
 function CollapsibleSection({ title, icon: Icon, expanded, onToggle, children }: CollapsibleSectionProps) {
   return (
-    <div className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+    <div className="rounded-xl bg-[#14141e] border border-white/[0.06] overflow-hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-[#1a1a28] transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Icon size={16} className="text-purple-400" />
+          <Icon size={16} className="text-green-400" />
           <SectionLabel>{title}</SectionLabel>
         </div>
-        <ChevronDown size={16} className={`text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+        <ChevronDown size={16} className={`text-slate-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
       </button>
       <AnimatePresence>
         {expanded && (
@@ -1284,21 +1285,21 @@ function StatsPlayerRow({ player, rank, highlight }: StatsPlayerRowProps) {
   return (
     <>
       <div 
-        className="flex items-center gap-3 p-2.5 rounded-lg bg-white/5 cursor-pointer hover:bg-white/10 transition-colors"
+        className="flex items-center gap-3 p-2.5 rounded-lg bg-[#1a1a28] cursor-pointer hover:bg-[#222232] transition-colors"
         onClick={() => setShowModal(true)}
       >
         <span className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
           rank === 1 ? "bg-yellow-500/20 text-yellow-400" :
-          rank === 2 ? "bg-gray-400/20 text-gray-400" :
+          rank === 2 ? "bg-slate-400/20 text-slate-400" :
           rank === 3 ? "bg-orange-600/20 text-orange-500" :
-          "bg-white/10 text-gray-500"
+          "bg-white/10 text-slate-500"
         }`}>
           {rank}
         </span>
         <span className="text-base">{getFlag(player.nationality)}</span>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-white truncate">{player.name}</p>
-          <p className="text-[10px] text-gray-500">{player.position}</p>
+          <p className="text-[10px] text-slate-500">{player.position}</p>
         </div>
         {highlight === "rating" && (
           <span className="text-lg font-bold text-green-400">{player.rating}</span>
@@ -1334,20 +1335,20 @@ interface MatchCardProps {
 
 function MatchCard({ match, clubId, getDisplayShortName }: MatchCardProps) {
   return (
-    <div className="flex items-center justify-center gap-4 p-3 rounded-lg bg-white/5">
+    <div className="flex items-center justify-center gap-4 p-3 rounded-lg bg-[#1a1a28]">
       <div className="flex items-center gap-2">
         <ClubLogo clubId={match.home.id} size={28} />
-        <span className={`text-sm font-medium ${match.home.id === clubId ? "text-purple-400" : "text-white"}`}>
+        <span className={`text-sm font-medium ${match.home.id === clubId ? "text-green-400" : "text-white"}`}>
           {getDisplayShortName(match.home.id, match.home.shortName)}
         </span>
       </div>
       <div className="flex items-center gap-2 px-3">
         <span className="text-xl font-bold text-white">{match.homeScore}</span>
-        <span className="text-gray-600">-</span>
+        <span className="text-slate-600">-</span>
         <span className="text-xl font-bold text-white">{match.awayScore}</span>
       </div>
       <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium ${match.away.id === clubId ? "text-purple-400" : "text-white"}`}>
+        <span className={`text-sm font-medium ${match.away.id === clubId ? "text-green-400" : "text-white"}`}>
           {getDisplayShortName(match.away.id, match.away.shortName)}
         </span>
         <ClubLogo clubId={match.away.id} size={28} />

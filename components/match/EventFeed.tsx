@@ -22,7 +22,7 @@ export default function EventFeed() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#1a1a28] border-b border-white/[0.04]">
         <span className="text-[11px] font-semibold text-slate-300 uppercase tracking-wide">Events</span>
-        <span className="text-[11px] font-bold text-green-500">{matchMinute}'</span>
+        <span className="text-[11px] font-bold text-green-500">{matchMinute}&apos;</span>
       </div>
 
       {/* Events */}
@@ -58,7 +58,7 @@ export default function EventFeed() {
                       <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                         isGoal ? "bg-green-500 text-white" : "bg-[#12121a] text-slate-400"
                       }`}>
-                        {event.minute}'
+                        {event.minute}&apos;
                       </span>
                       <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded ${
                         event.team === "home" ? "bg-slate-700 text-slate-300" : "bg-red-900/50 text-red-300"

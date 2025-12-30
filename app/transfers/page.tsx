@@ -2,13 +2,14 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search, Star, Send, Check, X, Eye, Briefcase, Users } from "lucide-react";
+import { ArrowLeft, Search, Star, Send, Check, X, Eye, Briefcase, Users, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ClubLogo from "@/components/ClubLogo";
 import { PlayerInfoModal, getFlag, positionColors } from "@/components/PlayerCard";
 import { useGameStore } from "@/lib/store";
 import { useClubNames } from "@/lib/useClubName";
 import { Player, Scout } from "@/lib/types";
+import { leagues } from "@/lib/mock";
 
 const defaultScouts: Scout[] = [
   { id: 1, name: "Carlos Mendes", nationality: "portuguese", rating: 15, specialization: "europe", salary: 50000, hiredDate: "" },
@@ -30,16 +31,46 @@ export default function TransfersPage() {
   const { getDisplayName } = useClubNames();
   const [activeTab, setActiveTab] = useState<"market" | "scouts" | "offers" | "history">("market");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLeague, setSelectedLeague] = useState<string>("all");
+  const [selectedClubId, setSelectedClubId] = useState<number | "all">("all");
   const [selectedPlayer, setSelectedPlayer] = useState<{ player: Player; club: any; askingPrice: number } | null>(null);
   const [offerAmount, setOfferAmount] = useState(0);
   const [playerInfoModal, setPlayerInfoModal] = useState<{ player: Player; clubName: string } | null>(null);
 
   const marketPlayers = useMemo(() => getTransferMarketPlayers(), [club.id]);
   
-  const filteredPlayers = marketPlayers.filter(p => 
-    p.player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.club.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get clubs for selected league
+  const clubsInSelectedLeague = useMemo(() => {
+    if (selectedLeague === "all") {
+      return leagues.flatMap(l => l.clubs);
+    }
+    const league = leagues.find(l => l.id === selectedLeague);
+    return league ? league.clubs : [];
+  }, [selectedLeague]);
+  
+  // Reset club filter when league changes
+  const handleLeagueChange = (leagueId: string) => {
+    setSelectedLeague(leagueId);
+    setSelectedClubId("all");
+  };
+  
+  const filteredPlayers = marketPlayers.filter(p => {
+    // Search filter
+    const matchesSearch = p.player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.club.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // League filter
+    let matchesLeague = true;
+    if (selectedLeague !== "all") {
+      const league = leagues.find(l => l.id === selectedLeague);
+      matchesLeague = league ? league.clubs.some(c => c.id === p.club.id) : false;
+    }
+    
+    // Club filter
+    const matchesClub = selectedClubId === "all" || p.club.id === selectedClubId;
+    
+    return matchesSearch && matchesLeague && matchesClub;
+  });
 
   const pendingOffers = transferOffers.filter(o => o.status === "pending");
   const incomingOffers = pendingOffers.filter(o => o.type === "incoming");
@@ -65,21 +96,21 @@ export default function TransfersPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1a1a2e] via-[#16213e] to-[#0f0f23]">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0f]">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-gradient-to-b from-[#1a1a2e] to-transparent backdrop-blur-md">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+      <div className="sticky top-0 z-40 bg-[#0c0c12]/95 backdrop-blur-md border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <Link href="/">
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
-                <ArrowLeft size={18} />
+                className="p-2.5 rounded-xl bg-[#14141e] border border-white/[0.06] hover:bg-[#1a1a28] transition-colors">
+                <ArrowLeft size={18} className="text-slate-400" />
               </motion.button>
             </Link>
             <ClubLogo clubId={club.id} size={36} />
             <div>
               <h1 className="text-lg font-bold text-white">Transfers</h1>
-              <p className="text-[10px] text-gray-400">Budget: {formatMoney(clubBalance)}</p>
+              <p className="text-[10px] text-slate-500">Budget: {formatMoney(clubBalance)}</p>
             </div>
           </div>
           {pendingOffers.length > 0 && (
@@ -121,6 +152,51 @@ export default function TransfersPage() {
                   className="flex-1 bg-transparent text-sm text-white outline-none placeholder:text-gray-500" />
               </div>
             </div>
+            
+            {/* League & Club Filters */}
+            <div className="flex gap-2">
+              {/* League Filter */}
+              <div className="flex-1 relative">
+                <select
+                  value={selectedLeague}
+                  onChange={(e) => handleLeagueChange(e.target.value)}
+                  className="w-full appearance-none px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10 text-sm text-white outline-none focus:border-purple-500 cursor-pointer"
+                >
+                  <option value="all" className="bg-[#14141e]">All Leagues</option>
+                  {leagues.map(league => (
+                    <option key={league.id} value={league.id} className="bg-[#14141e]">
+                      {league.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+              
+              {/* Club Filter */}
+              <div className="flex-1 relative">
+                <select
+                  value={selectedClubId}
+                  onChange={(e) => setSelectedClubId(e.target.value === "all" ? "all" : Number(e.target.value))}
+                  className="w-full appearance-none px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10 text-sm text-white outline-none focus:border-purple-500 cursor-pointer"
+                >
+                  <option value="all" className="bg-[#14141e]">All Clubs</option>
+                  {clubsInSelectedLeague
+                    .filter(c => c.id !== club.id) // Exclude user's club
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(c => (
+                      <option key={c.id} value={c.id} className="bg-[#14141e]">
+                        {getDisplayName(c.id, c.name)}
+                      </option>
+                    ))}
+                </select>
+                <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+            
+            {/* Results count */}
+            <p className="text-xs text-gray-500">
+              {filteredPlayers.length} player{filteredPlayers.length !== 1 ? "s" : ""} found
+            </p>
 
             {/* Player List */}
             <div className="space-y-2">

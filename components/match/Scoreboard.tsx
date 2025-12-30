@@ -68,7 +68,7 @@ export default function Scoreboard() {
             >
               <span className="w-2 h-2 bg-green rounded-full" />
               <Clock size={14} className="text-green" />
-              <span className="text-sm font-bold text-green">{match.minute}'</span>
+              <span className="text-sm font-bold text-green">{match.minute}&apos;</span>
             </motion.div>
           </div>
 

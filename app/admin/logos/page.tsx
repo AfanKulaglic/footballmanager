@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Upload, Trash2, Check, Search, X, Image as ImageIcon, Edit2, Save } from "lucide-react";
+import { Upload, Trash2, Check, Search, X, Image as ImageIcon, Edit2, Save, Users, Star } from "lucide-react";
 import { leagues } from "@/lib/mock";
+import { defaultClubSurnames } from "@/lib/clubSurnames";
+import { useGameStore } from "@/lib/store";
 import { 
   getStoredLogos, 
   saveLogo, 
@@ -12,7 +14,10 @@ import {
   saveClubName,
   removeClubName,
   clearAllClubNames,
-  clearAllCustomizations
+  clearAllCustomizations,
+  getStoredSurnames,
+  saveSurnames,
+  removeSurnames
 } from "@/lib/logoStore";
 import ClubLogo from "@/components/ClubLogo";
 
@@ -28,13 +33,24 @@ interface EditingClub {
   shortName: string;
 }
 
+interface EditingSurnamesClub {
+  id: number;
+  name: string;
+  isUserClub: boolean;
+}
+
 export default function LogoCMSPage() {
+  const { club: userClub, customSurnames, setCustomSurnames, isLoggedIn } = useGameStore();
+  
   const [logos, setLogos] = useState<Record<number, string>>({});
   const [clubNames, setClubNames] = useState<Record<number, { name: string; shortName: string }>>({});
+  const [otherClubSurnames, setOtherClubSurnames] = useState<Record<number, string[]>>({});
   const [search, setSearch] = useState("");
   const [selectedLeague, setSelectedLeague] = useState<string>("all");
   const [uploadingId, setUploadingId] = useState<number | null>(null);
   const [editingClub, setEditingClub] = useState<EditingClub | null>(null);
+  const [editingSurnamesClub, setEditingSurnamesClub] = useState<EditingSurnamesClub | null>(null);
+  const [surnamesText, setSurnamesText] = useState<string>("");
   const [notification, setNotification] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,7 +58,27 @@ export default function LogoCMSPage() {
   useEffect(() => {
     setLogos(getStoredLogos());
     setClubNames(getStoredClubNames());
+    setOtherClubSurnames(getStoredSurnames());
   }, []);
+  
+  // Initialize surnames text when opening editor
+  useEffect(() => {
+    if (editingSurnamesClub) {
+      let currentSurnames: string[];
+      
+      if (editingSurnamesClub.isUserClub && userClub) {
+        // User's club - use customSurnames from store or defaults
+        currentSurnames = customSurnames.length > 0 
+          ? customSurnames 
+          : defaultClubSurnames[userClub.id] || [];
+      } else {
+        // Other club - use localStorage or defaults
+        currentSurnames = otherClubSurnames[editingSurnamesClub.id] || defaultClubSurnames[editingSurnamesClub.id] || [];
+      }
+      
+      setSurnamesText(currentSurnames.join("\n"));
+    }
+  }, [editingSurnamesClub, userClub, customSurnames, otherClubSurnames]);
 
   // Get all clubs from all leagues
   const allClubs: (Club & { league: string })[] = leagues.flatMap(league =>
@@ -143,6 +179,74 @@ export default function LogoCMSPage() {
     });
     showNotification("Club name reset to default");
   };
+  
+  const handleSaveSurnames = () => {
+    if (!editingSurnamesClub) return;
+    
+    const surnames = surnamesText
+      .split("\n")
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    
+    if (editingSurnamesClub.isUserClub) {
+      // User's club - save to game store (persisted to database)
+      setCustomSurnames(surnames);
+    } else {
+      // Other club - save to localStorage only
+      saveSurnames(editingSurnamesClub.id, surnames);
+      setOtherClubSurnames(prev => ({ ...prev, [editingSurnamesClub.id]: surnames }));
+    }
+    
+    showNotification("Surnames updated!");
+    setEditingSurnamesClub(null);
+  };
+  
+  const handleResetSurnames = () => {
+    if (!editingSurnamesClub) return;
+    
+    const defaultSurnames = defaultClubSurnames[editingSurnamesClub.id] || [];
+    setSurnamesText(defaultSurnames.join("\n"));
+    
+    if (editingSurnamesClub.isUserClub) {
+      setCustomSurnames([]);
+    } else {
+      removeSurnames(editingSurnamesClub.id);
+      setOtherClubSurnames(prev => {
+        const newSurnames = { ...prev };
+        delete newSurnames[editingSurnamesClub.id];
+        return newSurnames;
+      });
+    }
+    
+    showNotification("Surnames reset to default");
+  };
+  
+  const handleOpenSurnamesEditor = (club: Club, isUserClub: boolean) => {
+    setEditingSurnamesClub({
+      id: club.id,
+      name: getDisplayName(club),
+      isUserClub,
+    });
+  };
+  
+  // Get surname count for a club
+  const getSurnameCount = (clubId: number): number => {
+    if (userClub && clubId === userClub.id && customSurnames.length > 0) {
+      return customSurnames.length;
+    }
+    if (otherClubSurnames[clubId]) {
+      return otherClubSurnames[clubId].length;
+    }
+    return (defaultClubSurnames[clubId] || []).length;
+  };
+  
+  // Check if club has custom surnames
+  const hasCustomSurnames = (clubId: number): boolean => {
+    if (userClub && clubId === userClub.id) {
+      return customSurnames.length > 0;
+    }
+    return !!otherClubSurnames[clubId];
+  };
 
   const handleClearAll = () => {
     if (confirm("Are you sure you want to remove all custom logos and names?")) {
@@ -233,6 +337,64 @@ export default function LogoCMSPage() {
           </div>
         </div>
       )}
+      
+      {/* Surnames Modal */}
+      {editingSurnamesClub && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1e1e3f] rounded-2xl p-6 w-full max-w-lg border border-white/10 max-h-[90vh] flex flex-col">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${editingSurnamesClub.isUserClub ? "bg-green-500/20" : "bg-purple-500/20"}`}>
+                <Users size={20} className={editingSurnamesClub.isUserClub ? "text-green-400" : "text-purple-400"} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">Edit Player Surnames</h3>
+                <p className="text-xs text-gray-500">
+                  {editingSurnamesClub.name}
+                  {editingSurnamesClub.isUserClub && <span className="text-green-400 ml-2">(Your Club)</span>}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <label className="block text-[10px] text-gray-500 uppercase tracking-wider mb-2">
+                Surnames (one per line)
+              </label>
+              <textarea
+                value={surnamesText}
+                onChange={(e) => setSurnamesText(e.target.value)}
+                className={`flex-1 min-h-[300px] bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none transition-colors resize-none font-mono text-sm ${editingSurnamesClub.isUserClub ? "focus:border-green-500" : "focus:border-purple-500"}`}
+                placeholder="Enter surnames, one per line..."
+              />
+              <p className="text-[10px] text-gray-600 mt-2">
+                {surnamesText.split("\n").filter(s => s.trim()).length} surnames defined
+                {!editingSurnamesClub.isUserClub && <span className="text-orange-400 ml-2">• Stored in browser only</span>}
+              </p>
+            </div>
+            
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={handleResetSurnames}
+                className="py-3 px-4 rounded-xl bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border border-orange-500/30 transition-colors text-sm"
+              >
+                Reset to Default
+              </button>
+              <button
+                onClick={() => setEditingSurnamesClub(null)}
+                className="flex-1 py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSurnames}
+                className={`flex-1 py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 ${editingSurnamesClub.isUserClub ? "bg-green-500 hover:bg-green-600" : "bg-purple-500 hover:bg-purple-600"}`}
+              >
+                <Save size={16} />
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <header className="bg-[#1a1a2e]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-40">
@@ -311,12 +473,51 @@ export default function LogoCMSPage() {
         </div>
       </div>
 
+      {/* User's Club Section */}
+      {isLoggedIn && userClub && (
+        <div className="max-w-6xl mx-auto px-4 pt-6">
+          <div className="rounded-2xl p-5 border-2 border-green-500/50 bg-green-500/5">
+            <div className="flex items-center gap-2 mb-4">
+              <Star size={18} className="text-green-400" />
+              <h2 className="text-lg font-bold text-white">Your Club</h2>
+              <span className="text-xs text-green-400 bg-green-500/20 px-2 py-0.5 rounded-full">Active</span>
+            </div>
+            
+            <div className="flex items-start gap-4">
+              <div className="w-20 h-20 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden border border-white/10">
+                <ClubLogo clubId={userClub.id} size={64} />
+              </div>
+              
+              <div className="flex-1">
+                <h3 className="font-bold text-white text-lg">{getDisplayName(userClub)}</h3>
+                <p className="text-sm text-gray-500">{getDisplayShortName(userClub)} • ID: {userClub.id}</p>
+                <p className="text-xs text-green-400 mt-1">
+                  {customSurnames.length > 0 
+                    ? `${customSurnames.length} custom surnames` 
+                    : `${(defaultClubSurnames[userClub.id] || []).length} default surnames`}
+                </p>
+              </div>
+              
+              <button
+                onClick={() => handleOpenSurnamesEditor(userClub, true)}
+                className="py-2.5 px-4 rounded-xl bg-green-500 hover:bg-green-600 transition-colors flex items-center gap-2 text-sm font-medium"
+              >
+                <Users size={16} />
+                Edit Surnames
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Club Grid */}
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredClubs.map(club => {
             const hasCustomLogo = !!logos[club.id];
             const hasCustomName = !!clubNames[club.id];
+            const hasCustomSurnamesForClub = hasCustomSurnames(club.id);
+            const isUserClubCard = userClub && club.id === userClub.id;
             const displayName = getDisplayName(club);
             const displayShortName = getDisplayShortName(club);
             
@@ -324,7 +525,11 @@ export default function LogoCMSPage() {
               <div
                 key={club.id}
                 className={`rounded-2xl p-4 border transition-all bg-white/5 ${
-                  hasCustomLogo || hasCustomName ? "border-purple-500/50" : "border-white/10"
+                  isUserClubCard 
+                    ? "border-green-500/50" 
+                    : hasCustomLogo || hasCustomName || hasCustomSurnamesForClub 
+                      ? "border-purple-500/50" 
+                      : "border-white/10"
                 }`}
               >
                 <div className="flex items-start gap-4">
@@ -341,8 +546,8 @@ export default function LogoCMSPage() {
                         <ClubLogo clubId={club.id} size={48} />
                       )}
                     </div>
-                    {(hasCustomLogo || hasCustomName) && (
-                      <div className="absolute -top-1 -right-1 w-5 h-5 bg-purple-500 rounded-full flex items-center justify-center">
+                    {(hasCustomLogo || hasCustomName || hasCustomSurnamesForClub) && (
+                      <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center ${isUserClubCard ? "bg-green-500" : "bg-purple-500"}`}>
                         <Check size={12} />
                       </div>
                     )}
@@ -352,10 +557,13 @@ export default function LogoCMSPage() {
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm truncate text-white">{displayName}</h3>
                     <p className="text-xs text-gray-500">{displayShortName} • ID: {club.id}</p>
-                    <p className="text-xs text-purple-400 mt-1">{club.league}</p>
+                    <p className={`text-xs mt-1 ${isUserClubCard ? "text-green-400" : "text-purple-400"}`}>{club.league}</p>
                     {hasCustomName && (
                       <p className="text-[10px] text-gray-600 mt-1">Original: {club.name}</p>
                     )}
+                    <p className="text-[10px] text-gray-600 mt-0.5">
+                      {getSurnameCount(club.id)} surnames {hasCustomSurnamesForClub && <span className="text-orange-400">(custom)</span>}
+                    </p>
                   </div>
                 </div>
 
@@ -385,18 +593,48 @@ export default function LogoCMSPage() {
                     {hasCustomName ? "Edit" : "Name"}
                   </button>
                   
-                  {(hasCustomLogo || hasCustomName) && (
+                  <button
+                    onClick={() => handleOpenSurnamesEditor(club, !!isUserClubCard)}
+                    className={`flex-1 py-2 px-3 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors ${
+                      hasCustomSurnamesForClub
+                        ? "bg-white/5 hover:bg-white/10 border border-white/10"
+                        : isUserClubCard 
+                          ? "bg-green-500 hover:bg-green-600"
+                          : "bg-orange-500 hover:bg-orange-600"
+                    }`}
+                  >
+                    <Users size={14} />
+                    {hasCustomSurnamesForClub ? "Edit" : "Names"}
+                  </button>
+                </div>
+                
+                {/* Reset button row */}
+                {(hasCustomLogo || hasCustomName || hasCustomSurnamesForClub) && (
+                  <div className="flex gap-2 mt-2">
                     <button
                       onClick={() => {
                         if (hasCustomLogo) handleRemoveLogo(club.id);
                         if (hasCustomName) handleResetClubName(club.id);
+                        if (hasCustomSurnamesForClub && !isUserClubCard) {
+                          removeSurnames(club.id);
+                          setOtherClubSurnames(prev => {
+                            const newSurnames = { ...prev };
+                            delete newSurnames[club.id];
+                            return newSurnames;
+                          });
+                        }
+                        if (hasCustomSurnamesForClub && isUserClubCard) {
+                          setCustomSurnames([]);
+                        }
+                        showNotification("Customizations removed");
                       }}
-                      className="py-2 px-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors border border-red-500/30"
+                      className="w-full py-2 px-3 rounded-xl text-xs font-medium bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors border border-red-500/30 flex items-center justify-center gap-2"
                     >
                       <Trash2 size={14} />
+                      Reset All
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -416,11 +654,14 @@ export default function LogoCMSPage() {
           <div className="text-sm text-gray-500">
             <p className="font-medium text-white mb-2">Instructions:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Click "Logo" to upload a custom PNG image for a club</li>
-              <li>Click "Name" to change the club's display name</li>
+              <li>Click &quot;Logo&quot; to upload a custom PNG image for a club</li>
+              <li>Click &quot;Name&quot; to change the club&apos;s display name</li>
+              <li>Click &quot;Names&quot; to customize player surnames for any club</li>
               <li>Recommended logo size: 200x200 pixels (square)</li>
               <li>Maximum file size: 500KB</li>
-              <li>Customizations are stored in your browser</li>
+              <li>Logo and name customizations are stored in your browser</li>
+              <li><span className="text-green-400">Your club&apos;s surnames</span> are saved with your game profile (synced to cloud)</li>
+              <li><span className="text-orange-400">Other clubs&apos; surnames</span> are stored in browser only (not synced)</li>
               <li>Changes will appear throughout the game</li>
             </ul>
           </div>

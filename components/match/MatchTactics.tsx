@@ -105,7 +105,7 @@ export default function MatchTactics() {
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-3">
                   <h3 className="font-bold text-white">Match Tactics</h3>
-                  <span className="text-xs text-slate-500">{matchMinute}'</span>
+                  <span className="text-xs text-slate-500">{matchMinute}&apos;</span>
                 </div>
                 <button 
                   onClick={closePanel}
@@ -155,7 +155,7 @@ export default function MatchTactics() {
                     {subsUsed >= maxSubs ? (
                       <div className="text-center py-6">
                         <p className="text-yellow-500 text-sm font-medium">All substitutions used</p>
-                        <p className="text-slate-500 text-xs mt-1">You've made {maxSubs} substitutions</p>
+                        <p className="text-slate-500 text-xs mt-1">You&apos;ve made {maxSubs} substitutions</p>
                       </div>
                     ) : (
                       <>

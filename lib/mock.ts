@@ -1,4 +1,6 @@
 import { Club, Player, LeagueStanding, InboxMessage, Manager, Country, League } from "./types";
+import { defaultClubSurnames } from "./clubSurnames";
+import { getSurnames } from "./logoStore";
 
 // Countries
 export const countries: Country[] = [
@@ -65,11 +67,19 @@ export function generateRandomPlayer(
   id: number,
   position: string,
   nationality: string,
-  baseRating: number
+  baseRating: number,
+  clubSurnames?: string[]
 ): Player {
   const names = namesByNationality[nationality] || namesByNationality.english;
   const firstName = names.first[Math.floor(Math.random() * names.first.length)];
-  const lastName = names.last[Math.floor(Math.random() * names.last.length)];
+  
+  // Use club-specific surnames if provided, otherwise use nationality-based surnames
+  let lastName: string;
+  if (clubSurnames && clubSurnames.length > 0) {
+    lastName = clubSurnames[Math.floor(Math.random() * clubSurnames.length)];
+  } else {
+    lastName = names.last[Math.floor(Math.random() * names.last.length)];
+  }
   
   const ratingVariance = Math.floor(Math.random() * 10) - 5;
   const rating = Math.max(50, Math.min(99, baseRating + ratingVariance));
@@ -135,11 +145,19 @@ function generatePlayer(
   position: string,
   posKey: string,
   nationality: string,
-  baseRating: number
+  baseRating: number,
+  clubSurnames?: string[]
 ): Player {
   const names = namesByNationality[nationality] || namesByNationality.english;
   const firstName = names.first[Math.floor(Math.random() * names.first.length)];
-  const lastName = names.last[Math.floor(Math.random() * names.last.length)];
+  
+  // Use club-specific surnames if provided, otherwise use nationality-based surnames
+  let lastName: string;
+  if (clubSurnames && clubSurnames.length > 0) {
+    lastName = clubSurnames[Math.floor(Math.random() * clubSurnames.length)];
+  } else {
+    lastName = names.last[Math.floor(Math.random() * names.last.length)];
+  }
   
   // Rating variance based on position importance
   const ratingVariance = Math.floor(Math.random() * 10) - 5;
@@ -192,9 +210,25 @@ function generatePlayer(
 }
 
 // Generate full squad for a club
-export function generateSquadForClub(club: Club): Player[] {
+export function generateSquadForClub(club: Club, customSurnames?: string[]): Player[] {
   const nationalities = getMixedNationalities(club.id, club.reputation);
   const positions = ["GK", "LB", "CB1", "CB2", "RB", "CDM", "CM1", "CM2", "LW", "RW", "ST"];
+  
+  // Get surnames for this club
+  // Priority: customSurnames param > localStorage > default
+  let clubSurnames: string[] | undefined;
+  if (customSurnames && customSurnames.length > 0) {
+    clubSurnames = customSurnames;
+  } else {
+    // Try localStorage (for non-user clubs)
+    const storedSurnames = getSurnames(club.id);
+    if (storedSurnames && storedSurnames.length > 0) {
+      clubSurnames = storedSurnames;
+    } else {
+      // Use default club surnames
+      clubSurnames = defaultClubSurnames[club.id];
+    }
+  }
   
   // Base rating depends on club reputation
   const baseRating = Math.floor(club.reputation * 0.8);
@@ -202,10 +236,29 @@ export function generateSquadForClub(club: Club): Player[] {
   const squad: Player[] = [];
   let playerId = club.id * 100;
   
+  // Track used surnames to avoid duplicates in the same squad
+  const usedSurnames = new Set<string>();
+  
+  // Helper to get unique surname
+  const getUniqueSurname = (): string | undefined => {
+    if (!clubSurnames || clubSurnames.length === 0) return undefined;
+    
+    // Filter out already used surnames
+    const available = clubSurnames.filter(s => !usedSurnames.has(s));
+    if (available.length === 0) {
+      // If all surnames used, allow repeats
+      return clubSurnames[Math.floor(Math.random() * clubSurnames.length)];
+    }
+    const surname = available[Math.floor(Math.random() * available.length)];
+    usedSurnames.add(surname);
+    return surname;
+  };
+  
   // Generate starting 11
   positions.forEach((posKey, index) => {
     const nationality = nationalities[Math.floor(Math.random() * nationalities.length)];
-    squad.push(generatePlayer(playerId++, posKey, posKey, nationality, baseRating));
+    const surname = getUniqueSurname();
+    squad.push(generatePlayer(playerId++, posKey, posKey, nationality, baseRating, surname ? [surname] : clubSurnames));
   });
   
   // Generate substitutes (7 more players)
@@ -213,7 +266,8 @@ export function generateSquadForClub(club: Club): Player[] {
   subPositions.forEach((posKey) => {
     const nationality = nationalities[Math.floor(Math.random() * nationalities.length)];
     const subRating = baseRating - 5; // Subs are slightly lower rated
-    squad.push(generatePlayer(playerId++, posKey, posKey, nationality, subRating));
+    const surname = getUniqueSurname();
+    squad.push(generatePlayer(playerId++, posKey, posKey, nationality, subRating, surname ? [surname] : clubSurnames));
   });
   
   // Assign unique squad numbers
@@ -234,16 +288,25 @@ export function generateSquadForClub(club: Club): Player[] {
 const squadCache: Map<number, Player[]> = new Map();
 
 // Get squad for a club (cached)
-export function getSquadForClub(club: Club): Player[] {
+export function getSquadForClub(club: Club, customSurnames?: string[]): Player[] {
+  // If custom surnames provided, don't use cache (regenerate)
+  if (customSurnames && customSurnames.length > 0) {
+    return generateSquadForClub(club, customSurnames);
+  }
+  
   if (!squadCache.has(club.id)) {
     squadCache.set(club.id, generateSquadForClub(club));
   }
   return squadCache.get(club.id)!;
 }
 
-// Clear squad cache (useful when starting new game)
-export function clearSquadCache() {
-  squadCache.clear();
+// Clear squad cache (useful when starting new game or when surnames change)
+export function clearSquadCache(clubId?: number) {
+  if (clubId !== undefined) {
+    squadCache.delete(clubId);
+  } else {
+    squadCache.clear();
+  }
 }
 
 // English Premier League clubs
@@ -350,9 +413,42 @@ export const mockStandings: LeagueStanding[] = [
 ];
 
 export const mockInbox: InboxMessage[] = [
-  { id: 1, from: "Board", subject: "Season Objectives", preview: "The board expects a top 3 finish...", date: "Today", read: false, type: "board" },
-  { id: 2, from: "Scout", subject: "Player Report: M. Silva", preview: "Promising young striker from Brazil...", date: "Yesterday", read: true, type: "transfer" },
-  { id: 3, from: "News", subject: "Derby Preview", preview: "All eyes on the upcoming derby match...", date: "2 days ago", read: true, type: "news" },
+  { 
+    id: "mock_1", 
+    from: "Board", 
+    subject: "Season Objectives", 
+    content: "The board expects a top 3 finish this season. We believe in your abilities to lead the team to success.",
+    preview: "The board expects a top 3 finish...", 
+    date: new Date().toISOString(), 
+    matchday: 1,
+    read: false, 
+    type: "board",
+    priority: "high"
+  },
+  { 
+    id: "mock_2", 
+    from: "Scout", 
+    subject: "Player Report: M. Silva", 
+    content: "Our scouts have identified a promising young striker from Brazil. He shows excellent potential.",
+    preview: "Promising young striker from Brazil...", 
+    date: new Date().toISOString(), 
+    matchday: 1,
+    read: true, 
+    type: "transfer",
+    priority: "normal"
+  },
+  { 
+    id: "mock_3", 
+    from: "News", 
+    subject: "Derby Preview", 
+    content: "All eyes on the upcoming derby match. The fans are expecting a big performance from the team.",
+    preview: "All eyes on the upcoming derby match...", 
+    date: new Date().toISOString(), 
+    matchday: 1,
+    read: true, 
+    type: "news",
+    priority: "normal"
+  },
 ];
 
 export const mockManager: Manager = {

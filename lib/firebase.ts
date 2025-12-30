@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getDatabase, ref, set, get, remove, update } from "firebase/database";
-import { Player, Transfer, Scout, ScoutReport, TransferOffer } from "./types";
+import { Player, Transfer, Scout, ScoutReport, TransferOffer, InboxMessage } from "./types";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -31,6 +31,7 @@ export interface FirebaseProfile {
     reputation: number;
   };
   createdAt: string;
+  deviceId: string; // Device that owns this profile
   
   // Game state
   currentMatchday: number;
@@ -122,6 +123,9 @@ export interface FirebaseProfile {
       champion: boolean;
     };
   }>;
+  
+  // Inbox messages
+  inboxMessages?: InboxMessage[];
 }
 
 // Save a profile to Firebase
@@ -152,15 +156,17 @@ export async function loadProfileFromFirebase(profileId: string): Promise<Fireba
   }
 }
 
-// Load all profiles from Firebase
-export async function loadAllProfilesFromFirebase(): Promise<FirebaseProfile[]> {
+// Load all profiles from Firebase for a specific device
+export async function loadAllProfilesFromFirebase(deviceId: string): Promise<FirebaseProfile[]> {
   try {
     const profilesRef = ref(database, "profiles");
     const snapshot = await get(profilesRef);
     
     if (snapshot.exists()) {
       const data = snapshot.val();
-      return Object.values(data) as FirebaseProfile[];
+      const allProfiles = Object.values(data) as FirebaseProfile[];
+      // Filter to only return profiles owned by this device
+      return allProfiles.filter(profile => profile.deviceId === deviceId);
     }
     return [];
   } catch (error) {
@@ -175,7 +181,7 @@ export async function updateProfileGameState(
   updates: Partial<Pick<FirebaseProfile, 
     "currentMatchday" | "fixtures" | "results" | "formation" | "manager" | 
     "squad" | "transfers" | "scouts" | "scoutReports" | "club" | "transferOffers" | "clubBalance" |
-    "currentSeason" | "seasonHistory"
+    "currentSeason" | "seasonHistory" | "inboxMessages"
   >>
 ): Promise<void> {
   try {

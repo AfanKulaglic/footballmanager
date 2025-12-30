@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Club, Match, Manager, Profile, Player, Transfer, Scout, ScoutReport, TransferOffer, SeasonHistory } from "./types";
+import { Club, Match, Manager, Profile, Player, Transfer, Scout, ScoutReport, TransferOffer, SeasonHistory, InboxMessage } from "./types";
 import { mockClubs, mockManager, leagues, generateSquadForClub, generateRandomPlayer } from "./mock";
 import { MatchEvent, simulateMatch, calculateMatchStats } from "./matchEngine";
 import { 
@@ -11,6 +11,7 @@ import {
   deleteProfileFromFirebase,
   FirebaseProfile 
 } from "./firebase";
+import { getDeviceId } from "./deviceId";
 
 // Fixture type for upcoming matches
 interface Fixture {
@@ -68,6 +69,12 @@ interface GameState {
   transferOffers: TransferOffer[];
   clubBalance: number;
   
+  // Inbox state
+  inboxMessages: InboxMessage[];
+  
+  // Custom surnames for user's club
+  customSurnames: string[];
+  
   // Tactics state
   formation: string;
   
@@ -98,7 +105,7 @@ interface GameState {
   }[];
   
   // Profile actions
-  createProfile: (profile: Omit<Profile, "id" | "createdAt">) => Promise<void>;
+  createProfile: (profile: Omit<Profile, "id" | "createdAt" | "deviceId">) => Promise<void>;
   selectProfile: (profileId: string) => Promise<void>;
   deleteProfile: (profileId: string) => Promise<void>;
   logout: () => void;
@@ -130,6 +137,14 @@ interface GameState {
   completeMatchAndAdvance: (homeScore: number, awayScore: number) => Promise<void>;
   updateOtherMatchesMinute: (minute: number) => void;
   startNewSeason: () => Promise<void>;
+  
+  // Inbox actions
+  markMessageRead: (messageId: string) => void;
+  clearReadMessages: () => void;
+  deleteMessage: (messageId: string) => void;
+  
+  // Custom surnames actions
+  setCustomSurnames: (surnames: string[]) => void;
 }
 
 // Simulate a match between two AI teams and return the score
@@ -300,6 +315,286 @@ function createMatchFromFixture(fixture: Fixture): Match {
   };
 }
 
+// Generate inbox messages after a match
+function generatePostMatchMessages(
+  club: Club,
+  opponent: Club,
+  isHome: boolean,
+  playerScore: number,
+  opponentScore: number,
+  matchday: number,
+  results: MatchResult[],
+  squad: Player[],
+  leagueClubs: Club[],
+  maxMatchdays: number
+): InboxMessage[] {
+  const messages: InboxMessage[] = [];
+  const now = new Date().toISOString();
+  
+  // Determine match result
+  const isWin = playerScore > opponentScore;
+  const isDraw = playerScore === opponentScore;
+  const isLoss = playerScore < opponentScore;
+  const goalDiff = playerScore - opponentScore;
+  
+  // Calculate current form (last 5 results including this one)
+  const playerResults = results.filter(r => r.home.id === club.id || r.away.id === club.id);
+  const recentResults = playerResults.slice(-5);
+  const recentWins = recentResults.filter(r => {
+    const isH = r.home.id === club.id;
+    return isH ? r.homeScore > r.awayScore : r.awayScore > r.homeScore;
+  }).length;
+  const recentLosses = recentResults.filter(r => {
+    const isH = r.home.id === club.id;
+    return isH ? r.homeScore < r.awayScore : r.awayScore < r.homeScore;
+  }).length;
+  
+  // Calculate league position
+  const standings: Record<number, { points: number; gd: number; gf: number }> = {};
+  leagueClubs.forEach(c => standings[c.id] = { points: 0, gd: 0, gf: 0 });
+  
+  results.forEach(r => {
+    if (standings[r.home.id]) {
+      standings[r.home.id].gf += r.homeScore;
+      standings[r.home.id].gd += r.homeScore - r.awayScore;
+      if (r.homeScore > r.awayScore) standings[r.home.id].points += 3;
+      else if (r.homeScore === r.awayScore) standings[r.home.id].points += 1;
+    }
+    if (standings[r.away.id]) {
+      standings[r.away.id].gf += r.awayScore;
+      standings[r.away.id].gd += r.awayScore - r.homeScore;
+      if (r.awayScore > r.homeScore) standings[r.away.id].points += 3;
+      else if (r.homeScore === r.awayScore) standings[r.away.id].points += 1;
+    }
+  });
+  
+  const sortedTeams = leagueClubs
+    .map(c => ({ id: c.id, ...standings[c.id] }))
+    .sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf);
+  
+  const position = sortedTeams.findIndex(t => t.id === club.id) + 1;
+  const isTopHalf = position <= Math.ceil(leagueClubs.length / 2);
+  const isTitle = position <= 3;
+  const isRelegation = position > leagueClubs.length - 3;
+  
+  // 1. Match Report (always)
+  const matchReportSubjects = isWin 
+    ? [`Victory! ${club.shortName} ${playerScore}-${opponentScore} ${opponent.shortName}`, 
+       `${club.shortName} triumph over ${opponent.shortName}`,
+       `Impressive win against ${opponent.shortName}`]
+    : isDraw 
+    ? [`${club.shortName} held to draw by ${opponent.shortName}`,
+       `Points shared: ${club.shortName} ${playerScore}-${opponentScore} ${opponent.shortName}`,
+       `Stalemate against ${opponent.shortName}`]
+    : [`Defeat: ${club.shortName} ${playerScore}-${opponentScore} ${opponent.shortName}`,
+       `${opponent.shortName} overcome ${club.shortName}`,
+       `Disappointing loss to ${opponent.shortName}`];
+  
+  const matchReportContent = isWin
+    ? goalDiff >= 3 
+      ? `A dominant performance saw ${club.name} cruise to a ${playerScore}-${opponentScore} victory over ${opponent.name}. The team showed excellent form throughout the match.`
+      : `${club.name} secured all three points with a ${playerScore}-${opponentScore} win against ${opponent.name}. A solid performance from the squad.`
+    : isDraw
+    ? `${club.name} had to settle for a point after a ${playerScore}-${opponentScore} draw with ${opponent.name}. The team will look to bounce back in the next fixture.`
+    : goalDiff <= -3
+      ? `A difficult day for ${club.name} as they fell to a heavy ${playerScore}-${opponentScore} defeat against ${opponent.name}. Questions will be asked about the performance.`
+      : `${club.name} suffered a ${playerScore}-${opponentScore} loss to ${opponent.name}. The team will need to regroup ahead of the next match.`;
+  
+  messages.push({
+    id: `match_${matchday}_${Date.now()}`,
+    from: "Match Report",
+    subject: matchReportSubjects[Math.floor(Math.random() * matchReportSubjects.length)],
+    content: matchReportContent,
+    preview: matchReportContent.substring(0, 80) + "...",
+    date: now,
+    matchday,
+    read: false,
+    type: "match_report",
+    priority: "normal",
+  });
+  
+  // 2. Form-based messages (good or bad run)
+  if (recentResults.length >= 3) {
+    // Winning streak
+    if (recentWins >= 3) {
+      messages.push({
+        id: `form_win_${matchday}_${Date.now()}`,
+        from: "Club News",
+        subject: `${recentWins} wins in a row! Excellent form`,
+        content: `The team is on fire! ${club.name} has won ${recentWins} consecutive matches, showing tremendous form. The players are full of confidence and the fans are delighted with the recent performances.`,
+        preview: `${recentWins} consecutive wins - the team is in excellent form`,
+        date: now,
+        matchday,
+        read: false,
+        type: "form",
+        priority: "normal",
+      });
+    }
+    
+    // Losing streak
+    if (recentLosses >= 3) {
+      messages.push({
+        id: `form_loss_${matchday}_${Date.now()}`,
+        from: "Board",
+        subject: `Concerning run of results`,
+        content: `The board is concerned about the recent run of ${recentLosses} consecutive defeats. We understand football has its ups and downs, but we expect to see improvement in the coming matches. The fans are growing restless.`,
+        preview: `${recentLosses} losses in a row - the board expects improvement`,
+        date: now,
+        matchday,
+        read: false,
+        type: "board",
+        priority: "high",
+      });
+    }
+  }
+  
+  // 3. Big match messages (against top teams or rivals)
+  const opponentPosition = sortedTeams.findIndex(t => t.id === opponent.id) + 1;
+  const isBigMatch = opponentPosition <= 5 || opponent.reputation >= 80;
+  
+  if (isBigMatch && isWin) {
+    messages.push({
+      id: `big_win_${matchday}_${Date.now()}`,
+      from: "Board",
+      subject: `Fantastic result against ${opponent.shortName}!`,
+      content: `The board is thrilled with the victory against ${opponent.name}. This is exactly the kind of result that shows our ambition. Keep up the excellent work!`,
+      preview: `The board congratulates you on the big win`,
+      date: now,
+      matchday,
+      read: false,
+      type: "board",
+      priority: "high",
+    });
+  } else if (isBigMatch && isLoss && goalDiff <= -2) {
+    messages.push({
+      id: `big_loss_${matchday}_${Date.now()}`,
+      from: "Board",
+      subject: `Disappointing performance against ${opponent.shortName}`,
+      content: `While we understand ${opponent.name} is a strong opponent, the manner of the defeat was concerning. We expect the team to show more fight in these big matches.`,
+      preview: `The board is disappointed with the heavy defeat`,
+      date: now,
+      matchday,
+      read: false,
+      type: "board",
+      priority: "normal",
+    });
+  }
+  
+  // 4. League position messages
+  if (matchday >= 5) {
+    if (isTitle && position === 1) {
+      messages.push({
+        id: `position_top_${matchday}_${Date.now()}`,
+        from: "Club News",
+        subject: `Top of the table!`,
+        content: `${club.name} sits at the top of the league table! The fans are dreaming of the title. Keep the momentum going and glory could be ours.`,
+        preview: `We're top of the league!`,
+        date: now,
+        matchday,
+        read: false,
+        type: "news",
+        priority: "high",
+      });
+    } else if (isRelegation) {
+      messages.push({
+        id: `position_danger_${matchday}_${Date.now()}`,
+        from: "Board",
+        subject: `Relegation concerns`,
+        content: `The board is worried about our league position. We are currently in ${position}${getOrdinalSuffix(position)} place, dangerously close to the relegation zone. Immediate improvement is required.`,
+        preview: `We're in the relegation zone - urgent action needed`,
+        date: now,
+        matchday,
+        read: false,
+        type: "board",
+        priority: "urgent",
+      });
+    }
+  }
+  
+  // 5. Player unhappiness (substitutes not playing)
+  const starters = squad.slice(0, 11);
+  const subs = squad.slice(11);
+  const unhappySubs = subs.filter(p => p.rating >= 72 && Math.random() < 0.15);
+  
+  if (unhappySubs.length > 0 && matchday >= 5) {
+    const unhappyPlayer = unhappySubs[0];
+    messages.push({
+      id: `player_unhappy_${matchday}_${Date.now()}`,
+      from: "Staff",
+      subject: `${unhappyPlayer.name} wants more playing time`,
+      content: `${unhappyPlayer.name} has expressed frustration about their lack of playing time. The ${unhappyPlayer.position} believes they deserve more opportunities in the starting lineup. You may want to consider giving them a chance soon.`,
+      preview: `${unhappyPlayer.name} is unhappy with limited playing time`,
+      date: now,
+      matchday,
+      read: false,
+      type: "player",
+      priority: "normal",
+      data: { playerId: unhappyPlayer.id, playerName: unhappyPlayer.name },
+    });
+  }
+  
+  // 6. Season milestones
+  if (matchday === Math.floor(maxMatchdays / 2)) {
+    const totalWins = playerResults.filter(r => {
+      const isH = r.home.id === club.id;
+      return isH ? r.homeScore > r.awayScore : r.awayScore > r.homeScore;
+    }).length;
+    const totalPoints = standings[club.id]?.points || 0;
+    
+    messages.push({
+      id: `milestone_half_${matchday}_${Date.now()}`,
+      from: "Board",
+      subject: `Mid-season review`,
+      content: `We've reached the halfway point of the season. ${club.name} has accumulated ${totalPoints} points from ${playerResults.length} matches, with ${totalWins} wins. ${isTopHalf ? "We're pleased with the progress so far." : "We expect improvement in the second half of the season."}`,
+      preview: `Mid-season: ${totalPoints} points, ${position}${getOrdinalSuffix(position)} place`,
+      date: now,
+      matchday,
+      read: false,
+      type: "milestone",
+      priority: "high",
+    });
+  }
+  
+  // 7. Clean sheet or defensive concerns
+  if (opponentScore === 0 && isWin) {
+    if (Math.random() < 0.3) {
+      messages.push({
+        id: `clean_sheet_${matchday}_${Date.now()}`,
+        from: "Staff",
+        subject: `Solid defensive display`,
+        content: `The defense was excellent today, keeping a clean sheet against ${opponent.name}. The backline is looking more organized and confident.`,
+        preview: `Clean sheet - defense looking solid`,
+        date: now,
+        matchday,
+        read: false,
+        type: "staff",
+        priority: "low",
+      });
+    }
+  } else if (opponentScore >= 3) {
+    messages.push({
+      id: `defense_concern_${matchday}_${Date.now()}`,
+      from: "Staff",
+      subject: `Defensive concerns`,
+      content: `Conceding ${opponentScore} goals is worrying. The coaching staff will work on defensive organization in training this week.`,
+      preview: `${opponentScore} goals conceded - defense needs work`,
+      date: now,
+      matchday,
+      read: false,
+      type: "staff",
+      priority: "normal",
+    });
+  }
+  
+  return messages;
+}
+
+function getOrdinalSuffix(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return s[(v - 20) % 10] || s[v] || s[0];
+}
+
 // Convert store state to Firebase profile
 function stateToFirebaseProfile(
   profile: Profile,
@@ -316,7 +611,8 @@ function stateToFirebaseProfile(
   transferOffers: TransferOffer[],
   clubBalance: number,
   currentSeason: number,
-  seasonHistory: SeasonHistory[]
+  seasonHistory: SeasonHistory[],
+  inboxMessages: InboxMessage[]
 ): FirebaseProfile {
   return {
     id: profile.id,
@@ -325,6 +621,7 @@ function stateToFirebaseProfile(
     country: profile.country,
     club: profile.club,
     createdAt: profile.createdAt,
+    deviceId: profile.deviceId,
     currentMatchday,
     formation,
     manager: {
@@ -343,6 +640,7 @@ function stateToFirebaseProfile(
     results,
     currentSeason,
     seasonHistory,
+    inboxMessages,
   };
 }
 
@@ -377,6 +675,12 @@ export const useGameStore = create<GameState>()(
       transferOffers: [],
       clubBalance: 0,
       
+      // Inbox state
+      inboxMessages: [],
+      
+      // Custom surnames for user's club
+      customSurnames: [],
+      
       // Tactics state
       formation: "4-3-3",
       
@@ -399,11 +703,12 @@ export const useGameStore = create<GameState>()(
       // Live scores from other matches
       liveOtherMatches: [],
       
-      // Load profiles from Firebase
+      // Load profiles from Firebase (only for this device)
       loadProfilesFromCloud: async () => {
         set({ isLoading: true });
         try {
-          const cloudProfiles = await loadAllProfilesFromFirebase();
+          const deviceId = getDeviceId();
+          const cloudProfiles = await loadAllProfilesFromFirebase(deviceId);
           if (cloudProfiles.length > 0) {
             const profiles: Profile[] = cloudProfiles.map(cp => ({
               id: cp.id,
@@ -412,6 +717,7 @@ export const useGameStore = create<GameState>()(
               country: cp.country,
               club: cp.club,
               createdAt: cp.createdAt,
+              deviceId: cp.deviceId,
             }));
             set({ profiles });
           }
@@ -424,7 +730,7 @@ export const useGameStore = create<GameState>()(
       
       // Sync current state to Firebase
       syncToCloud: async () => {
-        const { currentProfile, fixtures, leagueFixtures, results, currentMatchday, formation, manager, squad, transfers, scouts, scoutReports, transferOffers, clubBalance, currentSeason, seasonHistory } = get();
+        const { currentProfile, fixtures, leagueFixtures, results, currentMatchday, formation, manager, squad, transfers, scouts, scoutReports, transferOffers, clubBalance, currentSeason, seasonHistory, inboxMessages } = get();
         if (!currentProfile) return;
         
         set({ isSyncing: true });
@@ -444,7 +750,8 @@ export const useGameStore = create<GameState>()(
             transferOffers,
             clubBalance,
             currentSeason,
-            seasonHistory
+            seasonHistory,
+            inboxMessages
           );
           await saveProfileToFirebase(firebaseProfile);
         } catch (error) {
@@ -456,10 +763,12 @@ export const useGameStore = create<GameState>()(
       
       // Profile actions
       createProfile: async (profileData) => {
+        const deviceId = getDeviceId();
         const newProfile: Profile = {
           ...profileData,
           id: crypto.randomUUID(),
           createdAt: new Date().toISOString(),
+          deviceId, // Associate profile with this device
         };
         
         // Find the league for this club
@@ -519,6 +828,7 @@ export const useGameStore = create<GameState>()(
             [],
             newProfile.club.balance,
             new Date().getFullYear(),
+            [],
             []
           );
           await saveProfileToFirebase(firebaseProfile);
@@ -536,6 +846,14 @@ export const useGameStore = create<GameState>()(
           const cloudProfile = await loadProfileFromFirebase(profileId);
           
           if (cloudProfile) {
+            // Verify this profile belongs to this device
+            const deviceId = getDeviceId();
+            if (cloudProfile.deviceId && cloudProfile.deviceId !== deviceId) {
+              console.error("Profile does not belong to this device");
+              set({ isLoading: false });
+              return;
+            }
+            
             // Use cloud data
             const profile: Profile = {
               id: cloudProfile.id,
@@ -544,6 +862,7 @@ export const useGameStore = create<GameState>()(
               country: cloudProfile.country,
               club: cloudProfile.club,
               createdAt: cloudProfile.createdAt,
+              deviceId: cloudProfile.deviceId || deviceId,
             };
             
             // Get fixtures - regenerate if not in cloud data
@@ -590,6 +909,7 @@ export const useGameStore = create<GameState>()(
               clubBalance: cloudProfile.clubBalance || cloudProfile.club.balance,
               currentSeason: cloudProfile.currentSeason || new Date().getFullYear(),
               seasonHistory: cloudProfile.seasonHistory || [],
+              inboxMessages: cloudProfile.inboxMessages || [],
               match: currentFixture ? createMatchFromFixture(currentFixture as Fixture) : null,
             });
           } else {
@@ -688,7 +1008,7 @@ export const useGameStore = create<GameState>()(
       
       logout: () => {
         // Sync before logout
-        const { currentProfile, fixtures, leagueFixtures, results, currentMatchday, formation, manager, squad, transfers, scouts, scoutReports, transferOffers, clubBalance, currentSeason, seasonHistory } = get();
+        const { currentProfile, fixtures, leagueFixtures, results, currentMatchday, formation, manager, squad, transfers, scouts, scoutReports, transferOffers, clubBalance, currentSeason, seasonHistory, inboxMessages } = get();
         if (currentProfile) {
           const firebaseProfile = stateToFirebaseProfile(
             currentProfile,
@@ -705,7 +1025,8 @@ export const useGameStore = create<GameState>()(
             transferOffers,
             clubBalance,
             currentSeason,
-            seasonHistory
+            seasonHistory,
+            inboxMessages
           );
           saveProfileToFirebase(firebaseProfile).catch(console.error);
         }
@@ -1159,6 +1480,31 @@ export const useGameStore = create<GameState>()(
           return offer;
         });
         
+        // Generate inbox messages after the match
+        const playerLeague = leagues.find(l => l.clubs.some(c => c.id === club.id));
+        const leagueClubs = playerLeague?.clubs || [];
+        const maxMatchdays = (leagueClubs.length - 1) * 2;
+        
+        const isHome = match.home.id === club.id;
+        const opponent = isHome ? match.away : match.home;
+        const playerScore = isHome ? homeScore : awayScore;
+        const opponentScore = isHome ? awayScore : homeScore;
+        
+        const { inboxMessages } = get();
+        const newMessages = generatePostMatchMessages(
+          club,
+          opponent,
+          isHome,
+          playerScore,
+          opponentScore,
+          currentMatchday,
+          newResults,
+          squad,
+          leagueClubs,
+          maxMatchdays
+        );
+        const updatedInboxMessages = [...newMessages, ...inboxMessages];
+        
         set({
           results: newResults,
           currentMatchday: newMatchday,
@@ -1178,6 +1524,7 @@ export const useGameStore = create<GameState>()(
           },
           scoutReports: updatedScoutReports,
           transferOffers: processedOffers,
+          inboxMessages: updatedInboxMessages,
         });
         
         // Sync to Firebase after match
@@ -1188,6 +1535,7 @@ export const useGameStore = create<GameState>()(
               results: newResults,
               scoutReports: updatedScoutReports,
               transferOffers: processedOffers,
+              inboxMessages: updatedInboxMessages,
             });
             console.log("Match results synced to Firebase (player + AI matches)");
           } catch (error) {
@@ -1325,6 +1673,31 @@ export const useGameStore = create<GameState>()(
           }
         }
       },
+      
+      // Inbox actions
+      markMessageRead: (messageId) => {
+        const { inboxMessages } = get();
+        const updatedMessages = inboxMessages.map(msg =>
+          msg.id === messageId ? { ...msg, read: true } : msg
+        );
+        set({ inboxMessages: updatedMessages });
+      },
+      
+      clearReadMessages: () => {
+        const { inboxMessages } = get();
+        const unreadMessages = inboxMessages.filter(msg => !msg.read);
+        set({ inboxMessages: unreadMessages });
+      },
+      
+      deleteMessage: (messageId) => {
+        const { inboxMessages } = get();
+        const updatedMessages = inboxMessages.filter(msg => msg.id !== messageId);
+        set({ inboxMessages: updatedMessages });
+      },
+      
+      setCustomSurnames: (surnames) => {
+        set({ customSurnames: surnames });
+      },
     }),
     {
       name: "football-manager-storage",
@@ -1347,6 +1720,8 @@ export const useGameStore = create<GameState>()(
         scoutReports: state.scoutReports,
         transferOffers: state.transferOffers,
         clubBalance: state.clubBalance,
+        inboxMessages: state.inboxMessages,
+        customSurnames: state.customSurnames,
       }),
       onRehydrateStorage: () => (state) => {
         if (state && state.isLoggedIn && state.club && state.currentProfile) {

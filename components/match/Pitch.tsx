@@ -465,7 +465,7 @@ export default function Pitch() {
       {/* Info HUD */}
       <div className="absolute top-2 left-2 right-2 flex justify-between items-center">
         <div className="bg-black/70 backdrop-blur-sm px-2.5 py-1 rounded-md flex items-center gap-2">
-          <span className="text-green-400 font-bold text-xs">{matchMinute}'</span>
+          <span className="text-green-400 font-bold text-xs">{matchMinute}&apos;</span>
         </div>
         <div className={`px-2.5 py-1 rounded-md text-xs font-bold ${
           possession === "home" ? "bg-gray-700/90" : "bg-red-600/90"

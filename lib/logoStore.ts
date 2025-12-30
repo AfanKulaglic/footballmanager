@@ -2,6 +2,7 @@
 
 const LOGO_STORAGE_KEY = "football-manager-logos";
 const NAMES_STORAGE_KEY = "football-manager-club-names";
+const SURNAMES_STORAGE_KEY = "football-manager-club-surnames";
 
 export interface LogoData {
   [clubId: number]: string; // base64 encoded image
@@ -12,6 +13,10 @@ export interface ClubNameData {
     name: string;
     shortName: string;
   };
+}
+
+export interface ClubSurnamesData {
+  [clubId: number]: string[]; // array of surnames
 }
 
 // Logo functions
@@ -94,6 +99,45 @@ export function clearAllClubNames(): void {
 export function clearAllCustomizations(): void {
   clearAllLogos();
   clearAllClubNames();
+  clearAllSurnames();
+}
+
+// Surname functions (for non-user clubs - stored in localStorage only)
+export function getStoredSurnames(): ClubSurnamesData {
+  if (typeof window === "undefined") return {};
+  
+  try {
+    const stored = localStorage.getItem(SURNAMES_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveSurnames(clubId: number, surnames: string[]): void {
+  if (typeof window === "undefined") return;
+  
+  const allSurnames = getStoredSurnames();
+  allSurnames[clubId] = surnames;
+  localStorage.setItem(SURNAMES_STORAGE_KEY, JSON.stringify(allSurnames));
+}
+
+export function removeSurnames(clubId: number): void {
+  if (typeof window === "undefined") return;
+  
+  const allSurnames = getStoredSurnames();
+  delete allSurnames[clubId];
+  localStorage.setItem(SURNAMES_STORAGE_KEY, JSON.stringify(allSurnames));
+}
+
+export function getSurnames(clubId: number): string[] | null {
+  const allSurnames = getStoredSurnames();
+  return allSurnames[clubId] || null;
+}
+
+export function clearAllSurnames(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(SURNAMES_STORAGE_KEY);
 }
 
 // Helper to get display name for a club (custom or original)

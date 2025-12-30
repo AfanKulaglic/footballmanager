@@ -111,7 +111,7 @@ export default function LiveScores() {
                       animate={{ opacity: 1, x: 0 }}
                       className="flex items-center gap-2 text-[10px]"
                     >
-                      <span className="text-slate-600 font-mono w-4">{event.minute}'</span>
+                      <span className="text-slate-600 font-mono w-4">{event.minute}&apos;</span>
                       <span className="px-1 py-0.5 rounded text-[9px] font-semibold bg-[#1a1a28] text-slate-400">
                         {event.team === "home" ? event.home.shortName : event.away.shortName}
                       </span>

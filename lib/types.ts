@@ -103,13 +103,17 @@ export interface LeagueStanding {
 }
 
 export interface InboxMessage {
-  id: number;
+  id: string;
   from: string;
   subject: string;
+  content: string;
   preview: string;
   date: string;
+  matchday: number;
   read: boolean;
-  type: "transfer" | "news" | "board" | "staff";
+  type: "match_report" | "board" | "news" | "player" | "form" | "milestone" | "transfer" | "staff";
+  priority: "low" | "normal" | "high" | "urgent";
+  data?: any;
 }
 
 export interface Manager {
@@ -126,6 +130,7 @@ export interface Profile {
   country: string;
   club: Club;
   createdAt: string;
+  deviceId: string; // Unique device identifier - only this device can access this profile
 }
 
 export interface Country {
